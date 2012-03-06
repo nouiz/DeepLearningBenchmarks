@@ -208,11 +208,18 @@ def bench_deep1000():
     GlobalBenchReporter.eval_model(train, "mlp_784_1000_1000_1000_10")
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     GlobalBenchReporter.__init__(n_examples, batchsize, False, Algorithms.MLP)
     online_mlp_784_10()
+=======
+    online_mlp_784_10() # This function gives error
+>>>>>>> 3db5c5f... Added the new outs folder for ouputing the results.
     online_mlp_784_500_10()
     bench_logreg()
     bench_mlp_500()
     online_mlp_784_1000_1000_1000_10()
     bench_deep1000()
+<<<<<<< HEAD
     GlobalBenchReporter.report_speed_info()
+=======
+>>>>>>> 3db5c5f... Added the new outs folder for ouputing the results.
