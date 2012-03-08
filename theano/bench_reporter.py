@@ -153,17 +153,6 @@ class BenchmarkReporter(object):
         if self.algorithm == Algorithms.RBM:
             self._eval_model_rbm(train, name)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-    def _eval_model_mlp(self, train, mode, name):
-        bmark = self.get_bmark_name()
-=======
-=======
->>>>>>> 7e41484... Removed the unnecessary eval and report functions.
-=======
->>>>>>> 7e41484... Removed the unnecessary eval and report functions.
     def simple_eval_model(self, train, name):
         bmark = self.get_bmark_name(name)
         self.stop_watch.start()
@@ -175,20 +164,6 @@ class BenchmarkReporter(object):
 
     def _eval_model_mlp(self, train, name):
         bmark = self.get_bmark_name(name)
->>>>>>> 7e41484... Removed the unnecessary eval and report functions.
-=======
-    def simple_eval_model(self, train, mode, name):
-        bmark = self.get_bmark_name(name)
-        self.stop_watch.start()
-        train.fn(n_calls=self.num_examples)
-        time = self.stop_watch.stop()
-        self.add_speed(time, mode)
-        self._report_model(name, self.batch_size, self.stop_watch.stop(),
-                mode, bmark)
-
-    def _eval_model_mlp(self, train, mode, name):
-        bmark = self.get_bmark_name(name)
->>>>>>> e18f4e4... Added the simple evaluation function to bench_reporter.
         if self.batch_flag:
             self.stop_watch.start()
             for i in xrange(self.num_examples):
@@ -204,31 +179,9 @@ class BenchmarkReporter(object):
                 if not (i % 20):
                     print i * self.batch_size, cost
             time = self.stop_watch.stop()
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-            self.add_speed(time, mode)
-<<<<<<< HEAD
-            self._report_model(name, self.batch_size, self.stop_watch.stop(), mode, bmark)
-=======
             self.add_speed(time)
             self._report_model(name, self.batch_size, self.stop_watch.stop(),
                     bmark)
->>>>>>> 7e41484... Removed the unnecessary eval and report functions.
-=======
-            self.add_speed(time)
-            self._report_model(name, self.batch_size, self.stop_watch.stop(),
-                    bmark)
->>>>>>> 7e41484... Removed the unnecessary eval and report functions.
-=======
-            self.add_speed(time)
-            self._report_model(name, self.batch_size, self.stop_watch.stop(),
-                    bmark)
->>>>>>> 7e41484... Removed the unnecessary eval and report functions.
-=======
-            self._report_model(name, self.batch_size, self.stop_watch.stop(),
-                    mode, bmark)
->>>>>>> e18f4e4... Added the simple evaluation function to bench_reporter.
 
     def _eval_model_convnet(self, train, name):
         assert self.num_examples % self.batch_size
@@ -244,23 +197,8 @@ class BenchmarkReporter(object):
         expsec = self.num_examples / time
         self._report_model(name, self.batch_size, expsec, bmark)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-    def _eval_model_rbm(self, train, mode, name):
-<<<<<<< HEAD
-        bmark = self.get_bmark_name()
-=======
-=======
->>>>>>> 7e41484... Removed the unnecessary eval and report functions.
-=======
->>>>>>> 7e41484... Removed the unnecessary eval and report functions.
     def _eval_model_rbm(self, train, name):
         bmark = self.get_bmark_name(name)
->>>>>>> 7e41484... Removed the unnecessary eval and report functions.
-=======
-        bmark = self.get_bmark_name(name)
->>>>>>> e18f4e4... Added the simple evaluation function to bench_reporter.
         self.stop_watch.start()
         for i in xrange(self.niter):
             train(i * self.batch_size, self.batch_size)
@@ -326,46 +264,13 @@ class BenchmarkReporter(object):
         speed_outfile= "outs/speeds"
         f = open(speed_outfile, "w")
         if mode == RunMode.FLOAT_32:
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-            err = self.compare(ExecutionTimes.expected_times_32, self.float32_times) 
-            print>>f, "speed_failure_float64=" + str(err)
-        elif mode == RunMode.FLOAT_64:
-            err = self.compare(ExecutionTimes.expected_times_64, self.float64_times) 
-            print>>f, "speed_failure_float64=" + str(err)
-        elif mode == RunMode.GPU:
-            err = self.compare(ExecutionTimes.expected_times_gpu, self.gpu_times)
-<<<<<<< HEAD
-            print >>f, "speed_failure_gpu=" + str(err)
-=======
             err = self.compare(ExecutionTimes.expected_times_32, self.get_speeds()) 
             print>>f, "speed_failure_float64=" + str(err)
         elif mode == RunMode.FLOAT_64:
             err = self.compare(ExecutionTimes.expected_times_64, self.get_speeds()) 
             print>>f, "speed_failure_float64=" + str(err)
         elif mode == RunMode.GPU:
-=======
-            err = self.compare(ExecutionTimes.expected_times_32, self.get_speeds()) 
-            print>>f, "speed_failure_float64=" + str(err)
-        elif mode == RunMode.FLOAT_64:
-            err = self.compare(ExecutionTimes.expected_times_64, self.get_speeds()) 
-            print>>f, "speed_failure_float64=" + str(err)
-        elif mode == RunMode.GPU:
->>>>>>> 7e41484... Removed the unnecessary eval and report functions.
-=======
-            err = self.compare(ExecutionTimes.expected_times_32, self.get_speeds()) 
-            print>>f, "speed_failure_float64=" + str(err)
-        elif mode == RunMode.FLOAT_64:
-            err = self.compare(ExecutionTimes.expected_times_64, self.get_speeds()) 
-            print>>f, "speed_failure_float64=" + str(err)
-        elif mode == RunMode.GPU:
->>>>>>> 7e41484... Removed the unnecessary eval and report functions.
             err = self.compare(ExecutionTimes.expected_times_gpu, self.get_speeds())
             print>>f, "speed_failure_gpu=" + str(err)
->>>>>>> 7e41484... Removed the unnecessary eval and report functions.
-=======
-            print>>f, "speed_failure_gpu=" + str(err)
->>>>>>> e18f4e4... Added the simple evaluation function to bench_reporter.
 
 GlobalBenchReporter = BenchmarkReporter()

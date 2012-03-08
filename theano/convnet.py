@@ -115,7 +115,6 @@ def bench_ConvMed(batchsize):
             updates=[(p, p - lr * gp) for p, gp in zip(params, gparams)])
     GlobalBenchReporter.eval_model(train, "ConvMed")
 
-
 def bench_ConvLarge(batchsize):
     data_x.set_value(randn(n_examples, 1, 256, 256))
     w0 = shared(rand(6, 1, 7, 7) * numpy.sqrt(6 / (25.)))

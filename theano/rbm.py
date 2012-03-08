@@ -55,18 +55,5 @@ new_w = w - lr * (dot(pos_vis.T, pos_hid) - dot(neg_vis.T, neg_hid))
 f = function([si, nsi], [], updates={a:new_a, b:new_b, w:new_w})
 GlobalBenchReporter.__init__(batch_size=batchsize, algo=Algorithms.RBM, niter=niter, n_in=nin, n_out=nout)
 
-<<<<<<< HEAD
 GlobalBenchReporter.eval_model(f, "rbm_bernoulli")
-=======
-t = time.time()
-for i in xrange(niter):
-    f(i*batchsize, batchsize)
 
-print 'cd1 rbm_bernoulli %i_%i\ttheano{%s/%s/%i}\t%.2f' %(
-        nin, nout, 
-        config.device[0],
-        ('float' if config.floatX == 'float32' else 'double'),
-        batchsize, 
-        niter*batchsize/(time.time() - t))
-
->>>>>>> 3db5c5f... Added the new outs folder for ouputing the results.

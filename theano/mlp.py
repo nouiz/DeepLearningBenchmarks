@@ -1,4 +1,3 @@
-import time, socket
 from theano.tensor import lscalar, tanh, dot, grad, log, arange
 from theano.tensor.nnet import softmax, crossentropy_softmax_argmax_1hot_with_bias
 from theano import shared, function, config
@@ -6,6 +5,7 @@ import numpy, theano
 from numpy import asarray, random
 
 from bench_reporter import *
+
 random.seed(2344)
 
 import theano.tensor.blas_c
@@ -208,18 +208,12 @@ def bench_deep1000():
     GlobalBenchReporter.eval_model(train, "mlp_784_1000_1000_1000_10")
 
 if __name__ == '__main__':
-<<<<<<< HEAD
     GlobalBenchReporter.__init__(n_examples, batchsize, False, Algorithms.MLP)
     online_mlp_784_10()
-=======
     online_mlp_784_10() # This function gives error
->>>>>>> 3db5c5f... Added the new outs folder for ouputing the results.
     online_mlp_784_500_10()
     bench_logreg()
     bench_mlp_500()
     online_mlp_784_1000_1000_1000_10()
     bench_deep1000()
-<<<<<<< HEAD
     GlobalBenchReporter.report_speed_info()
-=======
->>>>>>> 3db5c5f... Added the new outs folder for ouputing the results.
