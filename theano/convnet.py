@@ -24,10 +24,8 @@ def randn(*size):
 def randint(size, high):
     return asarray(random.randint(size=size, low=0, high=high), dtype='int32')
 
-
 def zeros(*size):
     return numpy.zeros(size, dtype=config.floatX)
-
 
 n_examples = 1000
 outputs = 10
@@ -132,7 +130,6 @@ def bench_ConvMed(batchsize):
     train = function([si, nsi], cost,
             updates=[(p, p - lr * gp) for p, gp in zip(params, gparams)])
     eval_and_report(train, "ConvMed", [batchsize], N=120)
-
 
 def bench_ConvLarge(batchsize):
     data_x.set_value(randn(n_examples, 1, 256, 256))

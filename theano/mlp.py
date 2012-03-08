@@ -1,9 +1,11 @@
 import time, socket
-from theano.tensor import lscalar, lvector, matrix, tanh, dot, grad, log, arange
+from theano.tensor import lscalar, matrix, tanh, dot, grad, log, arange
 from theano.tensor.nnet import softmax, crossentropy_softmax_argmax_1hot_with_bias
 from theano import shared, function, config
 import numpy, theano
 from numpy import asarray, random
+
+import bench_reporter
 random.seed(2344)
 
 import theano.tensor.blas_c
