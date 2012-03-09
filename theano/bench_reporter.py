@@ -4,6 +4,7 @@ import numpy as np
 import math
 
 from theano import config
+import theano
 
 #Emulate the C-like enums in python
 class RunMode(object):
@@ -90,7 +91,7 @@ class StopWatch(object):
 
     def start(self):
         self._start = time.time()
-    
+
     def stop(self):
         self._end = time.time()
         self._delta = self._end - self._start
@@ -98,7 +99,6 @@ class StopWatch(object):
 
     def get_elapsed_time(self):
         return self._delta
-
 
 
 """
@@ -121,18 +121,21 @@ class BenchmarkReporter(object):
             (RunMode.FLOAT_64 + "_times"):[],
             (RunMode.GPU + "_times"):[]
         }
-    
+
     def _bmark_name(self, name):
         return open("outs/%s%s_%s_%s.bmark" % (socket.gethostname(), name,
             config.device, config.floatX), 'w')
 
-    def get_bmark_name(self):
-        if self.algorithm == Algorithms.MLP:
-            return self._bmark_name("mlp")
-        if self.algorithm == Algorithms.CONVNET:
-            return self._bmark_name("convnet")
-        if self.algorithm == Algorithms.RBM:
-            return self._bmark_name("rbm")
+    def get_bmark_name(self, name=None):
+        if name == None:
+            if self.algorithm == Algorithms.MLP:
+                return self._bmark_name("mlp")
+            if self.algorithm == Algorithms.CONVNET:
+                return self._bmark_name("convnet")
+            if self.algorithm == Algorithms.RBM:
+                return self._bmark_name("rbm")
+        else:
+            return self._bmark_name(name)
 
     def add_speed(self, time):
         mode = self.get_mode()
@@ -150,6 +153,7 @@ class BenchmarkReporter(object):
         if self.algorithm == Algorithms.RBM:
             self._eval_model_rbm(train, name)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -172,6 +176,19 @@ class BenchmarkReporter(object):
     def _eval_model_mlp(self, train, name):
         bmark = self.get_bmark_name(name)
 >>>>>>> 7e41484... Removed the unnecessary eval and report functions.
+=======
+    def simple_eval_model(self, train, mode, name):
+        bmark = self.get_bmark_name(name)
+        self.stop_watch.start()
+        train.fn(n_calls=self.num_examples)
+        time = self.stop_watch.stop()
+        self.add_speed(time, mode)
+        self._report_model(name, self.batch_size, self.stop_watch.stop(),
+                mode, bmark)
+
+    def _eval_model_mlp(self, train, mode, name):
+        bmark = self.get_bmark_name(name)
+>>>>>>> e18f4e4... Added the simple evaluation function to bench_reporter.
         if self.batch_flag:
             self.stop_watch.start()
             for i in xrange(self.num_examples):
@@ -191,6 +208,7 @@ class BenchmarkReporter(object):
 <<<<<<< HEAD
 <<<<<<< HEAD
             self.add_speed(time, mode)
+<<<<<<< HEAD
             self._report_model(name, self.batch_size, self.stop_watch.stop(), mode, bmark)
 =======
             self.add_speed(time)
@@ -207,10 +225,14 @@ class BenchmarkReporter(object):
             self._report_model(name, self.batch_size, self.stop_watch.stop(),
                     bmark)
 >>>>>>> 7e41484... Removed the unnecessary eval and report functions.
+=======
+            self._report_model(name, self.batch_size, self.stop_watch.stop(),
+                    mode, bmark)
+>>>>>>> e18f4e4... Added the simple evaluation function to bench_reporter.
 
     def _eval_model_convnet(self, train, name):
         assert self.num_examples % self.batch_size
-        bmark = self.get_bmark_name()
+        bmark = self.get_bmark_name(name)
         self.stop_watch.start()
         minibatch_size = math.ceil(self.num_examples / self.batch_size)
         for i in xrange(minibatch_size):
@@ -226,6 +248,7 @@ class BenchmarkReporter(object):
 <<<<<<< HEAD
 <<<<<<< HEAD
     def _eval_model_rbm(self, train, mode, name):
+<<<<<<< HEAD
         bmark = self.get_bmark_name()
 =======
 =======
@@ -235,6 +258,9 @@ class BenchmarkReporter(object):
     def _eval_model_rbm(self, train, name):
         bmark = self.get_bmark_name(name)
 >>>>>>> 7e41484... Removed the unnecessary eval and report functions.
+=======
+        bmark = self.get_bmark_name(name)
+>>>>>>> e18f4e4... Added the simple evaluation function to bench_reporter.
         self.stop_watch.start()
         for i in xrange(self.niter):
             train(i * self.batch_size, self.batch_size)
@@ -279,7 +305,7 @@ class BenchmarkReporter(object):
         bmark.write("theano{%s/%s/%i}\t" % (
         config.device[0], prec, batch_size))
         bmark.write("%.2f\n" % (self.niter * elapsed_time))
-    
+
     def compare(self, x, y):
         ratio = x / y
         # If there is more then 5% difference between the expected
@@ -304,12 +330,13 @@ class BenchmarkReporter(object):
 <<<<<<< HEAD
 <<<<<<< HEAD
             err = self.compare(ExecutionTimes.expected_times_32, self.float32_times) 
-            print >>f, "speed_failure_float64=" + str(err)
+            print>>f, "speed_failure_float64=" + str(err)
         elif mode == RunMode.FLOAT_64:
             err = self.compare(ExecutionTimes.expected_times_64, self.float64_times) 
-            print >>f, "speed_failure_float64=" + str(err)
+            print>>f, "speed_failure_float64=" + str(err)
         elif mode == RunMode.GPU:
             err = self.compare(ExecutionTimes.expected_times_gpu, self.gpu_times)
+<<<<<<< HEAD
             print >>f, "speed_failure_gpu=" + str(err)
 =======
             err = self.compare(ExecutionTimes.expected_times_32, self.get_speeds()) 
@@ -337,5 +364,8 @@ class BenchmarkReporter(object):
             err = self.compare(ExecutionTimes.expected_times_gpu, self.get_speeds())
             print>>f, "speed_failure_gpu=" + str(err)
 >>>>>>> 7e41484... Removed the unnecessary eval and report functions.
+=======
+            print>>f, "speed_failure_gpu=" + str(err)
+>>>>>>> e18f4e4... Added the simple evaluation function to bench_reporter.
 
 GlobalBenchReporter = BenchmarkReporter()

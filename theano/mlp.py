@@ -1,11 +1,11 @@
 import time, socket
-from theano.tensor import lscalar, matrix, tanh, dot, grad, log, arange
+from theano.tensor import lscalar, tanh, dot, grad, log, arange
 from theano.tensor.nnet import softmax, crossentropy_softmax_argmax_1hot_with_bias
 from theano import shared, function, config
 import numpy, theano
 from numpy import asarray, random
 
-import bench_reporter
+from bench_reporter import *
 random.seed(2344)
 
 import theano.tensor.blas_c
@@ -33,7 +33,6 @@ si = lscalar()
 nsi = lscalar()
 sx = data_x[si:si + nsi]
 sy = data_y[si:si + nsi]
-
 
 def online_mlp_784_10():
     v = shared(zeros(outputs, inputs))
@@ -71,6 +70,7 @@ def online_mlp_784_10():
         for i in xrange(n_examples): fn()
         dt = time.time() - t
         reportmodel('mlp_784_10_hack3', 1, dt)
+
 
 def online_mlp_784_500_10():
     HUs=500
@@ -180,6 +180,8 @@ def bench_mlp_500():
                       c:c-lr*gc })
     GlobalBenchReporter.eval_model(train, "mlp_784_500_10")
 
+    eval_and_report(train, "mlp_784_500_10")
+
 def bench_deep1000():
     w0 = shared(rand(inputs, 1000) * numpy.sqrt(6 / (inputs + 1000)))
     b0 = shared(zeros(1000))
@@ -206,6 +208,7 @@ def bench_deep1000():
     GlobalBenchReporter.eval_model(train, "mlp_784_1000_1000_1000_10")
 
 if __name__ == '__main__':
+    GlobalBenchReporter.__init__(n_examples, batchsize, False, Algorithms.MLP)
     online_mlp_784_10()
     online_mlp_784_500_10()
     bench_logreg()
