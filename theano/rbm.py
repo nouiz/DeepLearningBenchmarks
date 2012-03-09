@@ -56,5 +56,3 @@ f = function([si, nsi], [], updates={a:new_a, b:new_b, w:new_w})
 GlobalBenchReporter.__init__(batch_size=batchsize, algo=Algorithms.RBM, niter=niter, n_in=nin, n_out=nout)
 
 GlobalBenchReporter.eval_model(f, "rbm_bernoulli")
-
-
