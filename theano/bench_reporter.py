@@ -152,9 +152,12 @@ class BenchmarkReporter(object):
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     def _eval_model_mlp(self, train, mode, name):
         bmark = self.get_bmark_name()
 =======
+=======
+>>>>>>> 7e41484... Removed the unnecessary eval and report functions.
 =======
 >>>>>>> 7e41484... Removed the unnecessary eval and report functions.
     def simple_eval_model(self, train, name):
@@ -186,8 +189,14 @@ class BenchmarkReporter(object):
             time = self.stop_watch.stop()
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             self.add_speed(time, mode)
             self._report_model(name, self.batch_size, self.stop_watch.stop(), mode, bmark)
+=======
+            self.add_speed(time)
+            self._report_model(name, self.batch_size, self.stop_watch.stop(),
+                    bmark)
+>>>>>>> 7e41484... Removed the unnecessary eval and report functions.
 =======
             self.add_speed(time)
             self._report_model(name, self.batch_size, self.stop_watch.stop(),
@@ -215,9 +224,12 @@ class BenchmarkReporter(object):
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     def _eval_model_rbm(self, train, mode, name):
         bmark = self.get_bmark_name()
 =======
+=======
+>>>>>>> 7e41484... Removed the unnecessary eval and report functions.
 =======
 >>>>>>> 7e41484... Removed the unnecessary eval and report functions.
     def _eval_model_rbm(self, train, name):
@@ -290,6 +302,7 @@ class BenchmarkReporter(object):
         if mode == RunMode.FLOAT_32:
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             err = self.compare(ExecutionTimes.expected_times_32, self.float32_times) 
             print >>f, "speed_failure_float64=" + str(err)
         elif mode == RunMode.FLOAT_64:
@@ -305,6 +318,14 @@ class BenchmarkReporter(object):
             err = self.compare(ExecutionTimes.expected_times_64, self.get_speeds()) 
             print>>f, "speed_failure_float64=" + str(err)
         elif mode == RunMode.GPU:
+=======
+            err = self.compare(ExecutionTimes.expected_times_32, self.get_speeds()) 
+            print>>f, "speed_failure_float64=" + str(err)
+        elif mode == RunMode.FLOAT_64:
+            err = self.compare(ExecutionTimes.expected_times_64, self.get_speeds()) 
+            print>>f, "speed_failure_float64=" + str(err)
+        elif mode == RunMode.GPU:
+>>>>>>> 7e41484... Removed the unnecessary eval and report functions.
 =======
             err = self.compare(ExecutionTimes.expected_times_32, self.get_speeds()) 
             print>>f, "speed_failure_float64=" + str(err)

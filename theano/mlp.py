@@ -54,7 +54,6 @@ def online_mlp_784_10():
                 c:c - lr * gc,
                 si: (si + 1) % n_examples})
     theano.printing.debugprint(train, file=open('foo_train', 'wb'))
-
     GlobalBenchReporter.simple_eval_model(train, 'mlp_784_10_hack')
     try:
         train.fn.update_profile(train.profile)
