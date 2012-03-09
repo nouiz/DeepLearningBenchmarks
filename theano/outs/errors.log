@@ -1,0 +1,68 @@
+Traceback (most recent call last):
+  File "mlp.py", line 252, in <module>
+    online_mlp_784_1000_1000_1000_10()
+  File "mlp.py", line 169, in online_mlp_784_1000_1000_1000_10
+    train.fn(n_calls=n_examples)
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "convnet.py", line 7, in <module>
+    from theano.tensor import lscalar, tanh, dot, grad, log, arange
+  File "/u/gulcehrc/Codes/python/lisa_lab/Theano/theano/__init__.py", line 65, in <module>
+    import compile
+  File "/u/gulcehrc/Codes/python/lisa_lab/Theano/theano/compile/__init__.py", line 14, in <module>
+    import module
+  File "/u/gulcehrc/Codes/python/lisa_lab/Theano/theano/compile/module.py", line 10, in <module>
+    from theano.printing import pprint
+  File "/u/gulcehrc/Codes/python/lisa_lab/Theano/theano/printing.py", line 15, in <module>
+    import pydot as pd
+  File "/opt/lisa/os/epd-7.1.2/lib/python2.7/site-packages/pydot.py", line 31, in <module>
+    import dot_parser
+  File "/opt/lisa/os/epd-7.1.2/lib/python2.7/site-packages/dot_parser.py", line 23, in <module>
+    from pyparsing import __version__ as pyparsing_version
+  File "/opt/lisa/os/epd-7.1.2/lib/python2.7/site-packages/pyparsing.py", line 59, in <module>
+    """
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "rbm.py", line 36, in <module>
+    import theano.sandbox.rng_mrg
+  File "/u/gulcehrc/Codes/python/lisa_lab/Theano/theano/sandbox/rng_mrg.py", line 19, in <module>
+    import multinomial
+  File "/u/gulcehrc/Codes/python/lisa_lab/Theano/theano/sandbox/multinomial.py", line 6, in <module>
+    from theano.sandbox.cuda import cuda_available, GpuOp
+  File "/u/gulcehrc/Codes/python/lisa_lab/Theano/theano/sandbox/cuda/__init__.py", line 126, in <module>
+    preargs=compiler.compile_args())
+  File "/u/gulcehrc/Codes/python/lisa_lab/Theano/theano/sandbox/cuda/nvcc_compiler.py", line 254, in compile_str
+    nvcc_stdout, nvcc_stderr = p.communicate()[:2]
+  File "/opt/lisa/os/epd-7.1.2/lib/python2.7/subprocess.py", line 751, in communicate
+    return self._communicate(input)
+  File "/opt/lisa/os/epd-7.1.2/lib/python2.7/subprocess.py", line 1291, in _communicate
+    stdout, stderr = self._communicate_with_poll(input)
+  File "/opt/lisa/os/epd-7.1.2/lib/python2.7/subprocess.py", line 1345, in _communicate_with_poll
+    ready = poller.poll()
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "rbm.py", line 6, in <module>
+    from theano.tensor import lscalar, dot, sum as tsum
+  File "/u/gulcehrc/Codes/python/lisa_lab/Theano/theano/__init__.py", line 52, in <module>
+    import gof
+  File "/u/gulcehrc/Codes/python/lisa_lab/Theano/theano/gof/__init__.py", line 3, in <module>
+    from cc import \
+  File "/u/gulcehrc/Codes/python/lisa_lab/Theano/theano/gof/cc.py", line 6, in <module>
+    from copy import copy
+  File "/opt/lisa/os/epd-7.1.2/lib/python2.7/copy.py", line 49, in <module>
+    """
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "rbm.py", line 6, in <module>
+    from theano.tensor import lscalar, dot, sum as tsum
+  File "/u/gulcehrc/Codes/python/lisa_lab/Theano/theano/__init__.py", line 52, in <module>
+    import gof
+  File "/u/gulcehrc/Codes/python/lisa_lab/Theano/theano/gof/__init__.py", line 3, in <module>
+    from cc import \
+  File "/u/gulcehrc/Codes/python/lisa_lab/Theano/theano/gof/cc.py", line 44, in <module>
+    from compilelock import get_lock, release_lock
+  File "/u/gulcehrc/Codes/python/lisa_lab/Theano/theano/gof/compilelock.py", line 6, in <module>
+    import os, random, time, atexit
+  File "/opt/lisa/os/epd-7.1.2/lib/python2.7/random.py", line 70, in <module>
+    import _random
+KeyboardInterrupt

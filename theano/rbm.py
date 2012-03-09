@@ -2,10 +2,11 @@
 from __future__ import absolute_import
 import numpy as np
 import sys
-import time
 from theano.tensor import lscalar, dot, sum as tsum
 from theano.tensor.nnet import sigmoid
 from theano import shared, function, config
+
+from bench_reporter import *
 
 rng = np.random.RandomState(342)
 
@@ -52,16 +53,8 @@ new_b = b - lr * tsum(pos_hid - neg_hid, axis=0)
 new_w = w - lr * (dot(pos_vis.T, pos_hid) - dot(neg_vis.T, neg_hid))
 
 f = function([si, nsi], [], updates={a:new_a, b:new_b, w:new_w})
+GlobalBenchReporter.__init__(batch_size=batchsize, algo=Algorithms.RBM, niter=niter, n_in=nin, n_out=nout)
 
-t = time.time()
-for i in xrange(niter):
-    f(i*batchsize, batchsize)
-
-print 'cd1 rbm_bernoulli %i_%i\ttheano{%s/%s/%i}\t%.2f' %(
-        nin, nout, 
-        config.device[0],
-        ('float' if config.floatX == 'float32' else 'double'),
-        batchsize, 
-        niter*batchsize/(time.time() - t))
+GlobalBenchReporter.eval_model(f, "rbm_bernoulli")
 
 

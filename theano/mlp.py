@@ -34,12 +34,15 @@ nsi = lscalar()
 sx = data_x[si:si + nsi]
 sy = data_y[si:si + nsi]
 
+<<<<<<< HEAD
 bmark = open("%smlp_%s_%s.bmark" %(
     socket.gethostname(),
     config.device,
     config.floatX),
     'w')
 
+=======
+>>>>>>> 7e41484... Removed the unnecessary eval and report functions.
 def reportmodel(model, batchsize, t):
     bmark.write("%s\t" % model)
     if config.floatX == 'float32':
@@ -49,21 +52,6 @@ def reportmodel(model, batchsize, t):
     bmark.write("theano{%s/%s/%i}\t" % (
         config.device[0], prec, batchsize))
     bmark.write("%.2f\n"%(n_examples/t)) # report examples / second
-
-def eval_and_report(train, name):
-    if 1:
-        t = time.time()
-        for i in xrange(n_examples):
-            train(i, 1)
-        reportmodel(name, 1, time.time()-t)
-
-    if 0:# repeat w batchsize
-        t = time.time()
-        for i in xrange(n_examples/batchsize):
-            cost = train(i*batchsize, batchsize)
-            if not (i % 20):
-                print i*batchsize, cost
-        reportmodel(name, batchsize, time.time()-t)
 
 
 def online_mlp_784_10():
@@ -85,14 +73,17 @@ def online_mlp_784_10():
                 c:c - lr * gc,
                 si: (si + 1) % n_examples})
     theano.printing.debugprint(train, file=open('foo_train', 'wb'))
+<<<<<<< HEAD
     t = time.time()
     train.fn(n_calls=n_examples)
     dt = time.time() - t
+=======
+    GlobalBenchReporter.simple_eval_model(train, 'mlp_784_10_hack')
+>>>>>>> 7e41484... Removed the unnecessary eval and report functions.
     try:
         train.fn.update_profile(train.profile)
     except AttributeError:
         pass
-    reportmodel('mlp_784_10_hack', 1, dt)
     if 1:
         t = time.time()
         for i in xrange(n_examples):
@@ -130,14 +121,11 @@ def online_mlp_784_500_10():
                 c:c - lr * gc,
                 si: (si + 1) % n_examples})
     theano.printing.debugprint(train, file=open('foo_train', 'wb'))
-    t = time.time()
-    train.fn(n_calls=n_examples)
-    dt = time.time() - t
+    GlobalBenchReporter.simple_eval_model(train, "mlp_784_500_10_hack")
     try:
         train.fn.update_profile(train.profile)
     except AttributeError:
         pass
-    reportmodel('mlp_784_500_10_hack', 1, dt)
 
 def online_mlp_784_1000_1000_1000_10():
     w0 = shared(rand(inputs, 1000) * numpy.sqrt(6 / (inputs + 1000)))
@@ -167,14 +155,11 @@ def online_mlp_784_1000_1000_1000_10():
     updates += [(si, (si + 1) % n_examples)]
     train = function([], [], updates=updates)
     theano.printing.debugprint(train, file=open('foo_train', 'wb'))
-    t = time.time()
-    train.fn(n_calls=n_examples)
-    dt = time.time() - t
+    GlobalBenchReporter.simple_eval_model(train, "mlp_784_1000_1000_1000_10_hack")
     try:
         train.fn.update_profile(train.profile)
     except AttributeError:
         pass
-    reportmodel('mlp_784_1000_1000_1000_10_hack', 1, dt)
 
 def bench_logreg():
     v = shared(zeros(outputs, inputs))
@@ -196,8 +181,13 @@ def bench_logreg():
     train = function([si, nsi], [],
             updates={ v:v - lr * gv, c:c - lr * gc })
     theano.printing.debugprint(train, file=open('foo_train', 'wb'))
+<<<<<<< HEAD
 
     eval_and_report(train, "mlp_784_10")
+=======
+    
+    GlobalBenchReporter.eval_model(train, "mlp_784_10")
+>>>>>>> 7e41484... Removed the unnecessary eval and report functions.
     print v.get_value().mean()
     print v.get_value()[:5,:5]
 
@@ -219,7 +209,12 @@ def bench_mlp_500():
                       b:b-lr*gb,
                       v:v-lr*gv,
                       c:c-lr*gc })
+<<<<<<< HEAD
     eval_and_report(train, "mlp_784_500_10")
+=======
+    
+    GlobalBenchReporter.eval_model(train, "mlp_784_500_10")
+>>>>>>> 7e41484... Removed the unnecessary eval and report functions.
 
 def bench_deep1000():
     w0 = shared(rand(inputs, 1000) * numpy.sqrt(6 / (inputs + 1000)))
@@ -244,12 +239,18 @@ def bench_deep1000():
 
     train = function([si, nsi], cost,
             updates=[(p,p-lr*gp) for p,gp in zip(params, gparams)])
-    eval_and_report(train, "mlp_784_1000_1000_1000_10")
+    GlobalBenchReporter.eval_model(train, "mlp_784_1000_1000_1000_10")
 
 if __name__ == '__main__':
     online_mlp_784_10()
     online_mlp_784_500_10()
     bench_logreg()
     bench_mlp_500()
+<<<<<<< HEAD
     #online_mlp_784_1000_1000_1000_10()
     #bench_deep1000()
+=======
+    online_mlp_784_1000_1000_1000_10()
+    bench_deep1000()
+    GlobalBenchReporter.report_speed_info()
+>>>>>>> 7e41484... Removed the unnecessary eval and report functions.

@@ -1,0 +1,23 @@
+************* Module bench_reporter
+E: 48:ExecutionTimes.__init__: Module 'numpy' has no 'array' member
+E: 50:ExecutionTimes.__init__: Module 'numpy' has no 'array' member
+E: 68:ExecutionTimes.__init__: Module 'numpy' has no 'array' member
+E:123:BenchmarkReporter._bmark_name: Instance of 'TheanoConfigParser' has no 'device' member
+E:123:BenchmarkReporter._bmark_name: Instance of 'TheanoConfigParser' has no 'floatX' member
+E:153:BenchmarkReporter.simple_eval_model: Too many positional arguments for function call
+E:205:BenchmarkReporter._report_model: No value passed for parameter 'bmark' in function call
+E:211:BenchmarkReporter._report_model_mlp: Instance of 'TheanoConfigParser' has no 'floatX' member
+E:216:BenchmarkReporter._report_model_mlp: Instance of 'TheanoConfigParser' has no 'device' member
+E:221:BenchmarkReporter._report_model_convnet: Instance of 'TheanoConfigParser' has no 'floatX' member
+E:226:BenchmarkReporter._report_model_convnet: Instance of 'TheanoConfigParser' has no 'device' member
+E:231:BenchmarkReporter._report_model_rbm: Instance of 'TheanoConfigParser' has no 'floatX' member
+E:236:BenchmarkReporter._report_model_rbm: Instance of 'TheanoConfigParser' has no 'device' member
+E:246:BenchmarkReporter.get_mode: Instance of 'TheanoConfigParser' has no 'device' member
+E:249:BenchmarkReporter.get_mode: Instance of 'TheanoConfigParser' has no 'floatX' member
+E:251:BenchmarkReporter.get_mode: Instance of 'TheanoConfigParser' has no 'floatX' member
+E:259:BenchmarkReporter.report_speed_info: Class 'ExecutionTimes' has no 'expected_times_32' member
+E:259:BenchmarkReporter.report_speed_info: Instance of 'BenchmarkReporter' has no 'float32_times' member
+E:262:BenchmarkReporter.report_speed_info: Class 'ExecutionTimes' has no 'expected_times_64' member
+E:262:BenchmarkReporter.report_speed_info: Instance of 'BenchmarkReporter' has no 'float64_times' member
+E:265:BenchmarkReporter.report_speed_info: Class 'ExecutionTimes' has no 'expected_times_gpu' member
+E:265:BenchmarkReporter.report_speed_info: Instance of 'BenchmarkReporter' has no 'gpu_times' member

@@ -10,6 +10,8 @@ from theano.tensor.nnet.conv import conv2d
 from theano.tensor.signal.downsample import max_pool_2d
 from theano import shared, function, config
 
+from bench_reporter import *
+
 random.seed(2344)
 
 
@@ -48,24 +50,6 @@ else:
     prec = 'double'
 
 
-def reportmodel(model, batchsize, v):
-    bmark.write("%s\t" % model)
-    bmark.write("theano{%s/%s/%i}\t" % (
-        config.device[0], prec, batchsize))
-    bmark.write("%.2f\n" % v)
-
-
-def eval_and_report(train, name, batchsizes, N=n_examples):
-    for bs in batchsizes:
-        assert N % bs == 0  # can't be cheatin now...
-        t = time.time()
-        for i in xrange(N / bs):
-            cost = train(i * bs, bs)
-            if not (i % (1000 / bs)):
-                print i * bs, cost
-        reportmodel(name, bs, N / (time.time() - t))
-
-
 def bench_ConvSmall(batchsize):
     data_x.set_value(randn(n_examples, 1, 32, 32))
     w0 = shared(rand(6, 1, 5, 5) * numpy.sqrt(6 / (25.)))
@@ -96,8 +80,8 @@ def bench_ConvSmall(batchsize):
 
     train = function([si, nsi], cost,
             updates=[(p, p - lr * gp) for p, gp  in zip(params, gparams)])
-
-    eval_and_report(train, "ConvSmall", [batchsize], N=600)
+    
+    GlobalBenchReporter.eval_model(train, "ConvSmall")
 
 
 def bench_ConvMed(batchsize):
@@ -129,7 +113,8 @@ def bench_ConvMed(batchsize):
 
     train = function([si, nsi], cost,
             updates=[(p, p - lr * gp) for p, gp in zip(params, gparams)])
-    eval_and_report(train, "ConvMed", [batchsize], N=120)
+    GlobalBenchReporter.eval_model(train, "ConvMed")
+
 
 def bench_ConvLarge(batchsize):
     data_x.set_value(randn(n_examples, 1, 256, 256))
@@ -160,12 +145,15 @@ def bench_ConvLarge(batchsize):
 
     train = function([si, nsi], cost,
             updates=[(p, p - lr * gp) for p, gp in zip(params, gparams)])
-    eval_and_report(train, "ConvLarge", [batchsize], N=120)
+    GlobalBenchReporter.eval_model(train, "ConvLarge")
+
 
 if __name__ == '__main__':
+    GlobalBenchReporter.__init__(n_examples, batchsize, False, Algorithms.CONVNET)
     bench_ConvSmall(1)
     bench_ConvSmall(60)
     bench_ConvMed(1)
     bench_ConvMed(60)
     bench_ConvLarge(1)
     bench_ConvLarge(60)
+    GlobalBenchReporter.report_speed_info()
