@@ -117,9 +117,9 @@ class BenchmarkReporter(object):
         self.n_in = n_in
         self.n_out = n_out
         self.speeds = {
-            (RunMode.FLOAT_64 + "_times"):[],
-            (RunMode.FLOAT_64 + "_times"):[],
-            (RunMode.GPU + "_times"):[]
+            (RunMode.FLOAT_32 + "_times"): [],
+            (RunMode.FLOAT_64 + "_times"): [],
+            (RunMode.GPU + "_times"): []
         }
 
     def _bmark_name(self, name):
@@ -173,7 +173,7 @@ class BenchmarkReporter(object):
             self._report_model(name, self.batch_size, time, bmark)
         else:
             self.stop_watch.start()
-            minibatch_size = math.ceil(self.num_examples / self.batch_size)
+            minibatch_size = int(math.ceil(self.num_examples / self.batch_size))
             for i in xrange(minibatch_size):
                 cost = train(i * self.batch_size, self.batch_size)
                 if not (i % 20):
@@ -187,7 +187,7 @@ class BenchmarkReporter(object):
         assert self.num_examples % self.batch_size
         bmark = self.get_bmark_name(name)
         self.stop_watch.start()
-        minibatch_size = math.ceil(self.num_examples / self.batch_size)
+        minibatch_size = int(math.ceil(self.num_examples / self.batch_size))
         for i in xrange(minibatch_size):
             cost = train(i * self.batch_size, self.batch_size)
             if not (i % (1000 / self.batch_size)):
@@ -245,6 +245,8 @@ class BenchmarkReporter(object):
         bmark.write("%.2f\n" % (self.niter * elapsed_time))
 
     def compare(self, x, y):
+        x = np.asarray(x)
+        y = np.asarray(y)
         ratio = x / y
         # If there is more then 5% difference between the expected
         # time and the real time, we consider this an error.
@@ -263,13 +265,13 @@ class BenchmarkReporter(object):
         mode = self.get_mode()
         speed_outfile= "outs/speeds"
         f = open(speed_outfile, "w")
-        if mode == RunMode.FLOAT_32:
+        if mode == RunMode.FLOAT_32 and ExecutionTimes.expected_times_32:
             err = self.compare(ExecutionTimes.expected_times_32, self.get_speeds()) 
             print>>f, "speed_failure_float64=" + str(err)
-        elif mode == RunMode.FLOAT_64:
+        elif mode == RunMode.FLOAT_64 and ExecutionTimes.expected_times_64:
             err = self.compare(ExecutionTimes.expected_times_64, self.get_speeds()) 
             print>>f, "speed_failure_float64=" + str(err)
-        elif mode == RunMode.GPU:
+        elif mode == RunMode.GPU and ExecutionTimes.expected_times_gpu:
             err = self.compare(ExecutionTimes.expected_times_gpu, self.get_speeds())
             print>>f, "speed_failure_gpu=" + str(err)
 
