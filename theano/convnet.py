@@ -26,6 +26,7 @@ def randn(*size):
 def randint(size, high):
     return asarray(random.randint(size=size, low=0, high=high), dtype='int32')
 
+
 def zeros(*size):
     return numpy.zeros(size, dtype=config.floatX)
 

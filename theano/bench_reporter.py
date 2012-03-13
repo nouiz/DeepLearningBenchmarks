@@ -6,6 +6,7 @@ import math
 from theano import config
 import theano
 
+
 #Emulate the C-like enums in python
 class RunMode(object):
     FLOAT_32 = "float_32"
@@ -41,9 +42,9 @@ class ExecutionTimes(object):
             ]
 
         to_exec = [False] * len(self.algo)
-        to_exec[2] = True #enable mlp
-        to_exec[3] = True #enable covnet
-        to_exec[7] = True #enable rbm
+        to_exec[2] = True  # enable mlp
+        to_exec[3] = True  # enable covnet
+        to_exec[7] = True  # enable rbm
 
         #Timing expected are from the buildbot that have
         # an i7-920 @ 2.67GHz with hyperthread enabled for the cpu
@@ -222,7 +223,8 @@ class BenchmarkReporter(object):
             prec = 'double'
         bmark.write("theano{%s/%s/%i}\t" % (
         config.device[0], prec, batch_size))
-        bmark.write("%.2f\n"%(self.num_examples/elapsed_time)) # report examples / second
+        # report examples / second
+        bmark.write("%.2f\n" % (self.num_examples / elapsed_time))
 
     def _report_model_convnet(self, name, batch_size, expsec, mode, bmark):
         bmark.write("%s\t" % name)
@@ -263,7 +265,7 @@ class BenchmarkReporter(object):
 
     def report_speed_info(self):
         mode = self.get_mode()
-        speed_outfile= "outs/speeds"
+        speed_outfile = "outs/speeds"
         f = open(speed_outfile, "w")
         if mode == RunMode.FLOAT_32 and ExecutionTimes.expected_times_32:
             err = self.compare(ExecutionTimes.expected_times_32, self.get_speeds()) 
