@@ -195,7 +195,7 @@ class BenchmarkReporter(object):
                 print i * self.batch_size, cost
         elapsed_time = self.stop_watch.stop()
         self.add_speed(elapsed_time)
-        expsec = self.num_examples / time
+        expsec = self.num_examples / elapsed_time
         self._report_model(name, self.batch_size, expsec, bmark)
 
     def _eval_model_rbm(self, train, name):
@@ -204,7 +204,7 @@ class BenchmarkReporter(object):
         for i in xrange(self.niter):
             train(i * self.batch_size, self.batch_size)
         elapsed_time = self.stop_watch.stop()
-        self.add_speed(time)
+        self.add_speed(elapsed_time)
         self._report_model(name, self.batch_size, elapsed_time, bmark)
 
     def _report_model(self, name, batch_size, elapsed_time, bmark):
@@ -226,7 +226,7 @@ class BenchmarkReporter(object):
         # report examples / second
         bmark.write("%.2f\n" % (self.num_examples / elapsed_time))
 
-    def _report_model_convnet(self, name, batch_size, expsec, mode, bmark):
+    def _report_model_convnet(self, name, batch_size, expsec, bmark):
         bmark.write("%s\t" % name)
         if config.floatX == 'float32':
             prec = 'float'

@@ -52,6 +52,7 @@ else:
 
 
 def bench_ConvSmall(batchsize):
+    GlobalBenchReporter.batch_size = batchsize
     data_x.set_value(randn(n_examples, 1, 32, 32))
     w0 = shared(rand(6, 1, 5, 5) * numpy.sqrt(6 / (25.)))
     b0 = shared(zeros(6))
@@ -81,11 +82,12 @@ def bench_ConvSmall(batchsize):
 
     train = function([si, nsi], cost,
             updates=[(p, p - lr * gp) for p, gp  in zip(params, gparams)])
-    
+
     GlobalBenchReporter.eval_model(train, "ConvSmall")
 
 
 def bench_ConvMed(batchsize):
+    GlobalBenchReporter.batch_size = batchsize
     data_x.set_value(randn(n_examples, 1, 96, 96))
     w0 = shared(rand(6, 1, 7, 7) * numpy.sqrt(6 / (25.)))
     b0 = shared(zeros(6))
@@ -116,7 +118,9 @@ def bench_ConvMed(batchsize):
             updates=[(p, p - lr * gp) for p, gp in zip(params, gparams)])
     GlobalBenchReporter.eval_model(train, "ConvMed")
 
+
 def bench_ConvLarge(batchsize):
+    GlobalBenchReporter.batch_size = batchsize
     data_x.set_value(randn(n_examples, 1, 256, 256))
     w0 = shared(rand(6, 1, 7, 7) * numpy.sqrt(6 / (25.)))
     b0 = shared(zeros(6))
@@ -149,7 +153,8 @@ def bench_ConvLarge(batchsize):
 
 
 if __name__ == '__main__':
-    GlobalBenchReporter.__init__(n_examples, batchsize, False, Algorithms.CONVNET)
+    GlobalBenchReporter.__init__(n_examples, -1,
+                                 False, Algorithms.CONVNET)
     bench_ConvSmall(1)
     bench_ConvSmall(60)
     bench_ConvMed(1)
