@@ -28,6 +28,7 @@ GPU32_MLP='linker=cvm,device=gpu0,floatX=float32'
 cat /proc/cpuinfo |grep "model name"|uniq > ${HOSTNAME}_config.conf
 free >> ${HOSTNAME}_config.conf
 uname -a >>  ${HOSTNAME}_config.conf
+w >> ${HOSTNAME}_config.conf}
 
 (THEANO_FLAGS="$MKL32" python rbm.py 1024 1024 1 100 2>>./outs/errors.log >> outs/${HOSTNAME}_rbm_cpu32_b1.bmark) &&
 (THEANO_FLAGS="$MKL32" python rbm.py 1024 1024 60 20 2>>./outs/errors.log >> outs/${HOSTNAME}_rbm_cpu32_b60.bmark) ;
