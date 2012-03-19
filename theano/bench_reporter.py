@@ -155,6 +155,7 @@ class BenchmarkReporter(object):
             self._eval_model_rbm(train, name)
 
     def simple_eval_model(self, train, name):
+        assert self.num_examples % self.batch_size == 0
         bmark = self.get_bmark_name(name)
         self.stop_watch.start()
         train.fn(n_calls=self.num_examples)
@@ -164,6 +165,7 @@ class BenchmarkReporter(object):
                 bmark)
 
     def _eval_model_mlp(self, train, name):
+        assert self.num_examples % self.batch_size == 0
         bmark = self.get_bmark_name(name)
         if self.batch_flag:
             self.stop_watch.start()
@@ -185,7 +187,10 @@ class BenchmarkReporter(object):
                     bmark)
 
     def _eval_model_convnet(self, train, name):
-        assert self.num_examples % self.batch_size
+        if self.num_examples % self.batch_size != 0:
+            print ("Warning: convolution with batch size %d, but this is not"
+                   " a multiple of the number of example %d." % (
+                       self.batch_size, self.num_examples))
         bmark = self.get_bmark_name(name)
         self.stop_watch.start()
         minibatch_size = int(math.ceil(self.num_examples / self.batch_size))
@@ -199,6 +204,7 @@ class BenchmarkReporter(object):
         self._report_model(name, self.batch_size, expsec, bmark)
 
     def _eval_model_rbm(self, train, name):
+        assert self.num_examples % self.batch_size == 0
         bmark = self.get_bmark_name(name)
         self.stop_watch.start()
         for i in xrange(self.niter):
