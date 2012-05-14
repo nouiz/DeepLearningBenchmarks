@@ -17,6 +17,10 @@ BLAS32_MLP='linker=cvm,device=cpu,floatX=float32',$BLAS
 BLAS64_MLP='linker=cvm,device=cpu,floatX=float64',$BLAS
 GPU32_MLP='linker=cvm,device=gpu0,floatX=float32,force_device=True'
 
+(THEANO_FLAGS="$BLAS32_MLP" python control.py 2>>./outs/errors.log >> outs/${HOSTNAME}_control_cpu32.bmark) &&
+(THEANO_FLAGS="$BLAS64_MLP" python control.py 2>>./outs/errors.log >> outs/${HOSTNAME}_control_cpu64.bmark) &&
+(THEANO_FLAGS="$GPU32_MLP" python control.py 2>>./outs/errors.log >> outs/${HOSTNAME}_control_gpu32.bmark) ;
+
 (THEANO_FLAGS="$BLAS32_MLP" python mlp.py 2>>./outs/errors.log >> outs/${HOSTNAME}_mlp_cpu32.bmark) &&
 (THEANO_FLAGS="$BLAS64_MLP" python mlp.py 2>>./outs/errors.log >> outs/${HOSTNAME}_mlp_cpu64.bmark) &&
 (THEANO_FLAGS="$GPU32_MLP" python mlp.py 2>>./outs/errors.log >> outs/${HOSTNAME}_mlp_gpu32.bmark) ;
