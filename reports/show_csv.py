@@ -5,12 +5,13 @@ import matplotlib.pyplot as plt
 import sys
 from pylab import *
 
+
 def rcolor():
     return tuple(np.random.rand(3))
 
 from build_csv import build_results
 
-results = build_results(sys.argv[1]) # dict task -> impl -> time
+results = build_results(sys.argv[1])  # dict task -> impl -> time
 
 n_tasks = len(results)
 
@@ -33,10 +34,11 @@ for i, impl in enumerate(impls):
     for t in tasks:
         std.append(0)
         try:
-            means.append(1.0/results[t][impl])
+            means.append(1.0 / results[t][impl])
         except KeyError:
             means.append(0)
-    rects.append(ax.bar(ind+i*width, means, width, color=rcolor(), log=True)) #, color='r', yerr=menStd)
+    rects.append(ax.bar(ind + i * width, means, width,
+                        color=rcolor(), log=True))  # , color='r', yerr=menStd)
     print "adding rect for", impl, means
 
 #womenMeans = (25, 32, 34, 20, 25)
@@ -46,13 +48,13 @@ for i, impl in enumerate(impls):
 # add some
 ax.set_ylabel('Examples / seconds')
 #ax.set_title('Scores by group and gender')
-ax.set_xticks(ind+width*len(impls)/2.0)
+ax.set_xticks(ind + width * len(impls) / 2.0)
 print 'tasks', tasks
-ax.set_xticklabels( [t[:12] for t in tasks] )
+ax.set_xticklabels([t[:12] for t in tasks])
 print 'gca', gca().get_xticklabels()
 setp(gca().get_xticklabels(), rotation=30, fontsize=10)
 
-ax.legend( [r[0] for r in rects], impls, 'upper left' )
+ax.legend([r[0] for r in rects], impls, 'upper left')
 
 #def autolabel(rects):
     # attach some text labels
