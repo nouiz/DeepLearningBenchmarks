@@ -127,7 +127,7 @@ class BenchmarkReporter(object):
 
     def _bmark_name(self, name):
         return open("outs/%s%s_%s_%s.bmark" % (socket.gethostname(), name,
-            config.device, config.floatX), 'w')
+            config.device, config.floatX), 'a')
 
     def get_bmark_name(self, name=None):
         if name == None:
