@@ -30,7 +30,7 @@ def randint(size, high):
 def zeros(*size):
     return numpy.zeros(size, dtype=config.floatX)
 
-n_examples = 1000
+n_examples = 6000
 outputs = 10
 lr = numpy.asarray(0.01, dtype=config.floatX)
 
@@ -42,16 +42,9 @@ nsi = lscalar()
 sx = data_x[si:si + nsi]
 sy = data_y[si:si + nsi]
 
-bmark = open("%s_convnet_%s_%s.bmark" % (socket.gethostname(),
-                                         config.device, config.floatX), 'w')
-
-if config.floatX == 'float32':
-    prec = 'float'
-else:
-    prec = 'double'
-
 
 def bench_ConvSmall(batchsize):
+    # Image shape 32x32
     GlobalBenchReporter.batch_size = batchsize
     data_x.set_value(randn(n_examples, 1, 32, 32))
     w0 = shared(rand(6, 1, 5, 5) * numpy.sqrt(6 / (25.)))
@@ -87,6 +80,7 @@ def bench_ConvSmall(batchsize):
 
 
 def bench_ConvMed(batchsize):
+    # Image shape 96x96
     GlobalBenchReporter.batch_size = batchsize
     data_x.set_value(randn(n_examples, 1, 96, 96))
     w0 = shared(rand(6, 1, 7, 7) * numpy.sqrt(6 / (25.)))
@@ -120,6 +114,7 @@ def bench_ConvMed(batchsize):
 
 
 def bench_ConvLarge(batchsize):
+    # Image shape 256x256
     GlobalBenchReporter.batch_size = batchsize
     data_x.set_value(randn(n_examples, 1, 256, 256))
     w0 = shared(rand(6, 1, 7, 7) * numpy.sqrt(6 / (25.)))
@@ -155,10 +150,8 @@ def bench_ConvLarge(batchsize):
 if __name__ == '__main__':
     GlobalBenchReporter.__init__(n_examples, -1,
                                  False, Algorithms.CONVNET)
-    bench_ConvSmall(1)
-    bench_ConvSmall(60)
-    bench_ConvMed(1)
-    bench_ConvMed(60)
-    bench_ConvLarge(1)
-    bench_ConvLarge(60)
+    for batch_size in [1, 10, 60, 100]:
+        bench_ConvSmall(batch_size)
+        bench_ConvMed(batch_size)
+        bench_ConvLarge(batch_size)
     GlobalBenchReporter.report_speed_info()
