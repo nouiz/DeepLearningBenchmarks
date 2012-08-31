@@ -30,12 +30,10 @@ def zeros(*size):
     return numpy.zeros(size, dtype=config.floatX)
 
 
-n_examples = 6000
+n_examples = 60000
 inputs = 784
 outputs = 10
 lr = numpy.asarray(0.01, dtype=config.floatX)
-
-batchsize = 60
 
 data_x = shared(randn(n_examples, inputs))
 data_y = shared(randint((n_examples,), outputs))
@@ -47,6 +45,7 @@ sy = data_y[si:si + nsi]
 
 
 def online_mlp_784_10():
+    assert False, "This is old stuff not up to date that you probably don't need"
     v = shared(zeros(outputs, inputs))
     c = shared(zeros(outputs))
     si = shared(0)    # current training example index
@@ -86,6 +85,7 @@ def online_mlp_784_10():
 
 
 def online_mlp_784_500_10():
+    assert False, "This is old stuff not up to date that you probably don't need"
     HUs = 500
     w = shared(rand(HUs, inputs) * numpy.sqrt(6 / (inputs + HUs)))
     b = shared(zeros(HUs))
@@ -117,6 +117,7 @@ def online_mlp_784_500_10():
 
 
 def online_mlp_784_1000_1000_1000_10():
+    assert False, "This is old stuff not up to date that you probably don't need"
     w0 = shared(rand(inputs, 1000) * numpy.sqrt(6 / (inputs + 1000)))
     b0 = shared(zeros(1000))
     w1 = shared(rand(1000, 1000) * numpy.sqrt(6 / (1000 + 1000)))
@@ -153,6 +154,7 @@ def online_mlp_784_1000_1000_1000_10():
 
 
 def bench_logreg():
+    name = "mlp_784_10"
     v = shared(zeros(outputs, inputs))
     c = shared(zeros(outputs))
     #
@@ -161,7 +163,6 @@ def bench_logreg():
     # The change doesn't make much difference in the deeper models,
     # but in this case it was more than twice as fast.
     #
-
     p_y_given_x = softmax(dot(sx, v.T) + c)
     nll = -log(p_y_given_x)[arange(sy.shape[0]), sy]
     cost = nll.mean()
@@ -170,14 +171,16 @@ def bench_logreg():
 
     theano.printing.debugprint(grad(cost, [v, c]), file=open('foo', 'wb'))
     train = function([si, nsi], [],
-            updates={v: v - lr * gv, c: c - lr * gc})
+                     updates={v: v - lr * gv, c: c - lr * gc},
+                     name=name)
     theano.printing.debugprint(train, file=open('foo_train', 'wb'))
-    GlobalBenchReporter.eval_model(train, "mlp_784_10")
-    print v.get_value().mean()
-    print v.get_value()[:5, :5]
+    GlobalBenchReporter.eval_model(train, name)
+    #print v.get_value().mean()
+    #print v.get_value()[:5, :5]
 
 
 def bench_mlp_500():
+    name = "mlp_784_500_10"
     HUs = 500
     w = shared(rand(HUs, inputs) * numpy.sqrt(6 / (inputs + HUs)))
     b = shared(zeros(HUs))
@@ -191,16 +194,16 @@ def bench_mlp_500():
     gw, gb, gv, gc = grad(cost, [w, b, v, c])
 
     train = function([si, nsi], cost,
-            updates={w: w - lr * gw,
-                     b: b - lr * gb,
-                     v: v - lr * gv,
-                     c: c - lr * gc})
-    GlobalBenchReporter.eval_model(train, "mlp_784_500_10")
-
-    eval_and_report(train, "mlp_784_500_10")
+                     updates={w: w - lr * gw,
+                              b: b - lr * gb,
+                              v: v - lr * gv,
+                              c: c - lr * gc},
+                     name=name)
+    GlobalBenchReporter.eval_model(train, name)
 
 
 def bench_deep1000():
+    name = "mlp_784_1000_1000_1000_10"
     w0 = shared(rand(inputs, 1000) * numpy.sqrt(6 / (inputs + 1000)))
     b0 = shared(zeros(1000))
     w1 = shared(rand(1000, 1000) * numpy.sqrt(6 / (1000 + 1000)))
@@ -222,16 +225,19 @@ def bench_deep1000():
     gparams = grad(cost, params)
 
     train = function([si, nsi], cost,
-            updates=[(p, p - lr * gp) for p, gp in zip(params, gparams)])
-    GlobalBenchReporter.eval_model(train, "mlp_784_1000_1000_1000_10")
+                     updates=[(p, p - lr * gp)
+                              for p, gp in zip(params, gparams)],
+                     name=name)
+    GlobalBenchReporter.eval_model(train, name)
 
 if __name__ == '__main__':
-    GlobalBenchReporter.__init__(n_examples, batchsize, False, Algorithms.MLP)
-    online_mlp_784_10()
-    online_mlp_784_10()  # This function gives error
-    online_mlp_784_500_10()
-    bench_logreg()
-    bench_mlp_500()
-    online_mlp_784_1000_1000_1000_10()
-    bench_deep1000()
-    GlobalBenchReporter.report_speed_info()
+    GlobalBenchReporter.__init__(n_examples, algo=Algorithms.MLP)
+    for batch_size in [1, 10, 60, 100]:
+        GlobalBenchReporter.batch_size = batch_size
+        #online_mlp_784_10()
+        #online_mlp_784_500_10()
+        #online_mlp_784_1000_1000_1000_10()
+        bench_logreg()
+        bench_mlp_500()
+        bench_deep1000()
+        GlobalBenchReporter.report_speed_info()
