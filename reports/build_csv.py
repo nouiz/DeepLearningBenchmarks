@@ -4,11 +4,11 @@ import sys
 
 
 def build_results(path='.'):
-    results = {} # map task -> impl -> time
+    results = {}  # map task -> impl -> time
 
     for root, dirs, files in os.walk(path):
         for bmark in [f for f in files if f.endswith('.bmark')]:
-            for line in open(os.path.join(root,bmark)):
+            for line in open(os.path.join(root, bmark)):
                 if not line or line == "\n":
                     continue
                 try:
@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     for k in r:
         for i in r[k]:
-            print '%s\t%s\t%f' % (k,i,r[k][i])
+            print '%s\t%s\t%f' % (k, i, r[k][i])
 
     if 0:
 
@@ -38,9 +38,9 @@ if __name__ == '__main__':
         for k in keys:
             v = r[k]
             print k
-            r_k = [(v[i],i) for i in v]
+            r_k = [(v[i], i) for i in v]
             r_k.sort()
             r_k.reverse()
             for t, i in r_k:
-                print "   %10.2f - %s" %(t, i)
+                print "   %10.2f - %s" % (t, i)
             print ''
