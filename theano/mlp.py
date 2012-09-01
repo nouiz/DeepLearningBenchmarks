@@ -1,3 +1,6 @@
+from optparse import OptionParser
+
+
 import numpy
 from numpy import asarray, random
 
@@ -10,8 +13,6 @@ from theano import shared, function, config
 from bench_reporter import *
 
 random.seed(2344)
-
-import theano.tensor.blas_c
 
 
 def rand(*size):
@@ -231,13 +232,17 @@ def bench_deep1000():
     GlobalBenchReporter.eval_model(train, name)
 
 if __name__ == '__main__':
-    GlobalBenchReporter.__init__(n_examples, algo=Algorithms.MLP)
-    for batch_size in [1, 10, 60, 100]:
-        GlobalBenchReporter.batch_size = batch_size
-        #online_mlp_784_10()
-        #online_mlp_784_500_10()
-        #online_mlp_784_1000_1000_1000_10()
-        bench_logreg()
-        bench_mlp_500()
-        bench_deep1000()
-        GlobalBenchReporter.report_speed_info()
+    parser = OptionParser()
+    parser.add_option("--batch", default=60, type="int",
+                      help="the batch size to use")
+    (options, args) = parser.parse_args()
+
+    GlobalBenchReporter.__init__(n_examples, batch_size=options.batch,
+                                 algo=Algorithms.MLP)
+    #online_mlp_784_10()
+    #online_mlp_784_500_10()
+    #online_mlp_784_1000_1000_1000_10()
+    bench_logreg()
+    bench_mlp_500()
+    bench_deep1000()
+    #GlobalBenchReporter.report_speed_info()

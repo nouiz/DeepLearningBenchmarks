@@ -1,3 +1,4 @@
+from optparse import OptionParser
 import socket
 import time
 
@@ -148,10 +149,14 @@ def bench_ConvLarge(batchsize):
 
 
 if __name__ == '__main__':
-    GlobalBenchReporter.__init__(n_examples, -1,
-                                 False, Algorithms.CONVNET)
-    for batch_size in [1, 10, 60, 100]:
-        bench_ConvSmall(batch_size)
-        bench_ConvMed(batch_size)
-        bench_ConvLarge(batch_size)
-    GlobalBenchReporter.report_speed_info()
+    parser = OptionParser()
+    parser.add_option("--batch", default=60, type="int",
+                      help="the batch size to use")
+    (options, args) = parser.parse_args()
+
+    GlobalBenchReporter.__init__(n_examples, options.batch,
+                                 algo=Algorithms.CONVNET)
+    bench_ConvSmall(options.batch)
+    bench_ConvMed(options.batch)
+    bench_ConvLarge(options.batch)
+    #GlobalBenchReporter.report_speed_info()

@@ -13,9 +13,15 @@ BLAS64='linker=c|py_nogc,device=cpu,floatX=float64',$BLAS
 GPU32='linker=c|py_nogc,device=gpu0,floatX=float32,force_device=True'
 
 #MLP tests need the cvm linker.
-BLAS32_MLP='linker=cvm,device=cpu,floatX=float32',$BLAS
-BLAS64_MLP='linker=cvm,device=cpu,floatX=float64',$BLAS
-GPU32_MLP='linker=cvm,device=gpu0,floatX=float32,force_device=True'
+BLAS32_MLP='device=cpu,floatX=float32',$BLAS
+BLAS64_MLP='device=cpu,floatX=float64',$BLAS
+GPU32_MLP='device=gpu0,floatX=float32,force_device=True'
+
+cat /proc/cpuinfo |grep "model name"|uniq > outs/${HOSTNAME}_config.conf
+free >> outs/${HOSTNAME}_config.conf
+uname -a >>  outs/${HOSTNAME}_config.conf
+w >> outs/${HOSTNAME}_config.conf
+python -c "import theano; print 'blas',theano.config.blas.ldflags; print 'amdlibm',theano.config.lib.amdlibm" >> outs/${HOSTNAME}_config.conf
 
 (THEANO_FLAGS="$BLAS32_MLP" python control.py 2>>./outs/errors.log >> outs/${HOSTNAME}_control_cpu32.bmark) &&
 (THEANO_FLAGS="$BLAS64_MLP" python control.py 2>>./outs/errors.log >> outs/${HOSTNAME}_control_cpu64.bmark) &&
@@ -28,12 +34,6 @@ GPU32_MLP='linker=cvm,device=gpu0,floatX=float32,force_device=True'
 (THEANO_FLAGS="$BLAS32" python convnet.py 2>>./outs/errors.log >> outs/${HOSTNAME}_convnet_cpu32.bmark) &&
 (THEANO_FLAGS="$BLAS64" python convnet.py 2>>./outs/errors.log >> outs/${HOSTNAME}_convnet_cpu64.bmark) &&
 (THEANO_FLAGS="$GPU32" python convnet.py 2>>./outs/errors.log >> outs/${HOSTNAME}_convnet_gpu32.bmark) ;
-
-
-cat /proc/cpuinfo |grep "model name"|uniq > ${HOSTNAME}_config.conf
-free >> ${HOSTNAME}_config.conf
-uname -a >>  ${HOSTNAME}_config.conf
-w >> ${HOSTNAME}_config.conf
 
 (THEANO_FLAGS="$BLAS32" python rbm.py 1024 1024 1 100 2>>./outs/errors.log >> outs/${HOSTNAME}_rbm_cpu32_b1.bmark) &&
 (THEANO_FLAGS="$BLAS32" python rbm.py 1024 1024 60 20 2>>./outs/errors.log >> outs/${HOSTNAME}_rbm_cpu32_b60.bmark) ;
