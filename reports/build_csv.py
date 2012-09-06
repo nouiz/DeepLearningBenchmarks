@@ -9,7 +9,8 @@ def build_results(path='.'):
     for root, dirs, files in os.walk(path):
         for bmark in [f for f in files if f.endswith('.bmark')]:
             for line in open(os.path.join(root, bmark)):
-                if not line or line == "\n":
+                if (not line or line == "\n" or
+                    line.startswith("Using gpu device")):
                     continue
                 try:
                     task, impl, t = line[:-1].split('\t')[:3]
@@ -24,6 +25,9 @@ def build_results(path='.'):
     return results
 
 if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        raise Exception("Need a path as the first argument")
+
     r = build_results(sys.argv[1])
 
     for k in r:

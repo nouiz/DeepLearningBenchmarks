@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import sys
 from pylab import *
 
+if len(sys.argv) == 1:
+    raise Exception("Need a path as the first argument")
+
 
 def rcolor():
     return 'b'
