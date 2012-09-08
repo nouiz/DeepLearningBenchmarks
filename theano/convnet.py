@@ -43,8 +43,13 @@ nsi = lscalar()
 sx = data_x[si:si + nsi]
 sy = data_y[si:si + nsi]
 
+ssi = shared(0)
+snsi = shared(0)
+ssx = data_x[ssi:ssi + snsi]
+ssy = data_y[ssi:ssi + snsi]
 
 def bench_ConvSmall(batchsize):
+    name = "ConvSmall"
     # Image shape 32x32
     GlobalBenchReporter.batch_size = batchsize
     data_x.set_value(randn(n_examples, 1, 32, 32))
@@ -75,12 +80,36 @@ def bench_ConvSmall(batchsize):
     gparams = grad(cost, params)
 
     train = function([si, nsi], cost,
-            updates=[(p, p - lr * gp) for p, gp  in zip(params, gparams)])
+                     updates=[(p, p - lr * gp) for p, gp  in zip(params, gparams)],
+                     name=name)
 
-    GlobalBenchReporter.eval_model(train, "ConvSmall")
+    GlobalBenchReporter.eval_model(train, name)
 
+    # Versions with no inputs
+    snsi.set_value(GlobalBenchReporter.batch_size)
+    c0= tanh(conv2d(ssx, w0, image_shape=(batchsize, 1, 32, 32),
+                     filter_shape=(6, 1, 5, 5)) + b0.dimshuffle(0, 'x', 'x'))
+    # this is not the correct leNet5 model, but it's closer to
+    s0 = tanh(max_pool_2d(c0, (2, 2)))
+
+    c1 = tanh(conv2d(s0, w1, image_shape=(batchsize, 6, 14, 14),
+                     filter_shape=(16, 6, 5, 5)) +
+              b1.dimshuffle(0, 'x', 'x'))
+    s1 = tanh(max_pool_2d(c1, (2, 2)))
+
+    p_y_given_x = softmax(dot(tanh(dot(s1.flatten(2), vv) + cc), v) + c)
+    nll = -log(p_y_given_x)[arange(ssy.shape[0]), ssy]
+    cost = nll.mean()
+
+    gparams = grad(cost, params)
+
+    train2 = function([], cost,
+            updates=[(p, p - lr * gp) for p, gp  in zip(params, gparams)] + [(ssi, ssi + snsi)])
+
+    GlobalBenchReporter.bypass_eval_model(train2, name, init_to_zero=ssi)
 
 def bench_ConvMed(batchsize):
+    name = "ConvMed"
     # Image shape 96x96
     GlobalBenchReporter.batch_size = batchsize
     data_x.set_value(randn(n_examples, 1, 96, 96))
@@ -110,11 +139,34 @@ def bench_ConvMed(batchsize):
     gparams = grad(cost, params)
 
     train = function([si, nsi], cost,
-            updates=[(p, p - lr * gp) for p, gp in zip(params, gparams)])
-    GlobalBenchReporter.eval_model(train, "ConvMed")
+                     updates=[(p, p - lr * gp) for p, gp in zip(params, gparams)],
+                     name=name)
+    GlobalBenchReporter.eval_model(train, name)
+
+    # Versions with no inputs
+    snsi.set_value(GlobalBenchReporter.batch_size)
+    c0 = tanh(conv2d(ssx, w0, image_shape=(batchsize, 1, 96, 96),
+                     filter_shape=(6, 1, 7, 7)) + b0.dimshuffle(0, 'x', 'x'))
+    # this is not the correct leNet5 model, but it's closer to
+    s0 = tanh(max_pool_2d(c0, (3, 3)))
+
+    c1 = tanh(conv2d(s0, w1, image_shape=(batchsize, 6, 30, 30),
+                     filter_shape=(16, 6, 7, 7)) + b1.dimshuffle(0, 'x', 'x'))
+    s1 = tanh(max_pool_2d(c1, (3, 3)))
+
+    p_y_given_x = softmax(dot(tanh(dot(s1.flatten(2), vv) + cc), v) + c)
+    nll = -log(p_y_given_x)[arange(ssy.shape[0]), ssy]
+    cost = nll.mean()
+
+    gparams = grad(cost, params)
+
+    train2 = function([], cost,
+                      updates=[(p, p - lr * gp) for p, gp in zip(params, gparams)] + [(ssi, ssi + snsi)])
+    GlobalBenchReporter.bypass_eval_model(train2, name, init_to_zero=ssi)
 
 
 def bench_ConvLarge(batchsize):
+    name = "ConvLarge"
     # Image shape 256x256
     GlobalBenchReporter.batch_size = batchsize
     data_x.set_value(randn(n_examples, 1, 256, 256))
@@ -144,8 +196,32 @@ def bench_ConvLarge(batchsize):
     gparams = grad(cost, params)
 
     train = function([si, nsi], cost,
-            updates=[(p, p - lr * gp) for p, gp in zip(params, gparams)])
-    GlobalBenchReporter.eval_model(train, "ConvLarge")
+                     updates=[(p, p - lr * gp) for p, gp in zip(params, gparams)],
+                     name=name)
+    GlobalBenchReporter.eval_model(train, name)
+
+    # Versions with no inputs
+    snsi.set_value(GlobalBenchReporter.batch_size)
+    c0 = tanh(conv2d(ssx, w0, image_shape=(batchsize, 1, 256, 256),
+                     filter_shape=(6, 1, 7, 7)) + b0.dimshuffle(0, 'x', 'x'))
+    # this is not the correct leNet5 model, but it's closer to
+    s0 = tanh(max_pool_2d(c0, (5, 5)))
+
+    c1 = tanh(conv2d(s0, w1, image_shape=(batchsize, 6, 50, 50),
+                     filter_shape=(16, 6, 7, 7)) + b1.dimshuffle(0, 'x', 'x'))
+    s1 = tanh(max_pool_2d(c1, (4, 4)))
+
+    p_y_given_x = softmax(dot(tanh(dot(s1.flatten(2), vv) + cc), v) + c)
+    nll = -log(p_y_given_x)[arange(ssy.shape[0]), ssy]
+    cost = nll.mean()
+
+    gparams = grad(cost, params)
+
+    train2 = function([si, nsi], cost,
+                      updates=[(p, p - lr * gp) for p, gp in zip(params, gparams) + [(ssi, ssi + snsi)]],
+                      name=name)
+    GlobalBenchReporter.bypass_eval_model(train2, name, init_to_zero=ssi)
+
 
 
 if __name__ == '__main__':

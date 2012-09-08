@@ -44,6 +44,11 @@ nsi = lscalar()
 sx = data_x[si:si + nsi]
 sy = data_y[si:si + nsi]
 
+ssi = shared(0)
+snsi = shared(0)
+ssx = data_x[ssi:ssi + snsi]
+ssy = data_y[ssi:ssi + snsi]
+
 
 def online_mlp_784_10():
     assert False, "This is old stuff not up to date that you probably don't need"
@@ -174,10 +179,23 @@ def bench_logreg():
     train = function([si, nsi], [],
                      updates={v: v - lr * gv, c: c - lr * gc},
                      name=name)
-    theano.printing.debugprint(train, file=open('foo_train', 'wb'))
+#    theano.printing.debugprint(train, print_type=True)
     GlobalBenchReporter.eval_model(train, name)
-    #print v.get_value().mean()
-    #print v.get_value()[:5, :5]
+
+    # Version with no inputs
+    snsi.set_value(GlobalBenchReporter.batch_size)
+
+    p_y_given_x = softmax(dot(ssx, v.T) + c)
+    nll = -log(p_y_given_x)[arange(ssy.shape[0]), ssy]
+    cost = nll.mean()
+
+    gv, gc = grad(cost, [v, c])
+
+    train2 = function([], [],
+                      updates={v: v - lr * gv, c: c - lr * gc,
+                               ssi: ssi + snsi},
+                      name=name)
+    GlobalBenchReporter.bypass_eval_model(train2, name, init_to_zero=ssi)
 
 
 def bench_mlp_500():
@@ -201,6 +219,24 @@ def bench_mlp_500():
                               c: c - lr * gc},
                      name=name)
     GlobalBenchReporter.eval_model(train, name)
+
+
+    # Version with no inputs
+    snsi.set_value(GlobalBenchReporter.batch_size)
+    p_y_given_x = softmax(dot(tanh(dot(ssx, w.T) + b), v.T) + c)
+    nll = -log(p_y_given_x)[arange(ssy.shape[0]), ssy]
+    cost = nll.mean()
+
+    gw, gb, gv, gc = grad(cost, [w, b, v, c])
+
+    train2 = function([], cost,
+                     updates={w: w - lr * gw,
+                              b: b - lr * gb,
+                              v: v - lr * gv,
+                              c: c - lr * gc,
+                              ssi: ssi + snsi},
+                      name=name)
+    GlobalBenchReporter.bypass_eval_model(train2, name, init_to_zero=ssi)
 
 
 def bench_deep1000():
@@ -230,6 +266,25 @@ def bench_deep1000():
                               for p, gp in zip(params, gparams)],
                      name=name)
     GlobalBenchReporter.eval_model(train, name)
+
+    # Version with no inputs
+    h0 = tanh(dot(ssx, w0) + b0)
+    h1 = tanh(dot(h0, w1) + b1)
+    h2 = tanh(dot(h1, w2) + b2)
+
+    p_y_given_x = softmax(dot(h2, v) + c)
+    nll = -log(p_y_given_x)[arange(ssy.shape[0]), ssy]
+    cost = nll.mean()
+
+    gparams = grad(cost, params)
+
+    train2 = function([], cost,
+                      updates=[(p, p - lr * gp)
+                               for p, gp in zip(params, gparams)] + [(ssi, ssi + snsi)],
+                      name=name)
+    snsi.set_value(GlobalBenchReporter.batch_size)
+    GlobalBenchReporter.bypass_eval_model(train2, name, init_to_zero=ssi)
+
 
 if __name__ == '__main__':
     parser = OptionParser()
