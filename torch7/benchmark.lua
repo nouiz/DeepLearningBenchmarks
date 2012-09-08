@@ -1,4 +1,3 @@
-require "lab"
 require "nn"
 
 cmd = torch.CmdLine()
@@ -21,12 +20,33 @@ cmd:option('-cuda', false, 'use CUDA instead of floats')
 cmd:option('-gi', false, 'compute gradInput')
 cmd:option('-v', false, 'be verbose')
 cmd:option('-batch', 1, 'batch size')
+cmd:option('-iter', 1, 'number of iterations to perform')
+cmd:option('-hooks', false, 'add hooks useful for debug')
 
 cmd:text()
 
+function hooks(params)
+   local n = 0
+   local err = 0
+   local function hookExample(self)
+      err = err + self.criterion.output
+      n = n + 1
+   end
+
+   local function hookIteration(self)
+      printlog(string.format('mean err = %.3f', err/n))
+      err = 0
+      n = 0
+   end
+
+   if params.hooks then
+      return hookExample, hookIteration
+   end
+end
+
 local params = cmd:parse(arg)
 
-random.manualSeed(5555)
+torch.manualSeed(5555)
 
 if params.v then
    printlog = print
@@ -59,6 +79,7 @@ elseif params.cuda then
    require 'cunn'
    dofile('cudahacks.lua')
    torch.setdefaulttensortype('torch.CudaTensor')
+   print(  cutorch.getDeviceProperties(cutorch.getDevice()) )
 else
    torch.setdefaulttensortype('torch.FloatTensor')
 end
@@ -106,7 +127,7 @@ if not params.nomlp then
 
    local ninput = 784
    local dataset = {}
-   local data = lab.randn(params.nexmlp, ninput)
+   local data = torch.randn(params.nexmlp, ninput)
    local label = torch.LongTensor(params.nexmlp)
    for i=1,params.nexmlp do
       label[i] = (i % noutput) + 1
@@ -158,12 +179,13 @@ if not params.nomlp then
 
       local trainer = nn.StochasticGradient(mlp, criterion)
 
+      trainer.hookExample, trainer.hookIteration = hooks(params)
       trainer.learningRate = 0.01
       trainer.shuffleIndices = false
-      trainer.maxIteration = 1
+      trainer.maxIteration = params.iter
       local t = torch.Timer()
       trainer:train(dataset)
-      printlog(string.format("mlp_%i_%i\t%.2f", ninput, noutput, params.nexmlp/t:time().real))
+      printlog(string.format("mlp_%i_%i\t%.2f", ninput, noutput, params.iter*params.nexmlp/t:time().real))
    end
 
    if true then -- MLP 784/500/10
@@ -195,12 +217,13 @@ if not params.nomlp then
 
       local trainer = nn.StochasticGradient(mlp, criterion)
 
+      trainer.hookExample, trainer.hookIteration = hooks(params)
       trainer.learningRate = 0.01
       trainer.shuffleIndices = false
-      trainer.maxIteration = 1
+      trainer.maxIteration = params.iter
       local t = torch.Timer()
       trainer:train(dataset)
-      printlog(string.format("mlp_%i_500_%i\t%.2f", ninput, noutput, params.nexmlp/t:time().real))
+      printlog(string.format("mlp_%i_500_%i\t%.2f", ninput, noutput, params.iter*params.nexmlp/t:time().real))
    end
 
 
@@ -237,12 +260,13 @@ if not params.nomlp then
 
       local trainer = nn.StochasticGradient(mlp, criterion)
 
+      trainer.hookExample, trainer.hookIteration = hooks(params)
       trainer.learningRate = 0.01
       trainer.shuffleIndices = false
-      trainer.maxIteration = 1
+      trainer.maxIteration = params.iter
       local t = torch.Timer()
       trainer:train(dataset)
-      printlog(string.format("mlp_%i_1000_1000_1000_%i\t%.2f", ninput, noutput, params.nexmlp/t:time().real))
+      printlog(string.format("mlp_%i_1000_1000_1000_%i\t%.2f", ninput, noutput, params.iter*params.nexmlp/t:time().real))
    end
 end
 
@@ -250,7 +274,7 @@ if not params.nocnn then
 
    function createcnndataset(nex,w,h)
       local dataset = {}
-      local data = lab.randn(nex, 1, w, h)
+      local data = torch.randn(nex, 1, w, h)
       local label = torch.LongTensor(params.nexmlp)
       for i=1,params.nexmlp do
          label[i] = (i % noutput) + 1
@@ -285,11 +309,11 @@ if not params.nocnn then
       local mlp = nn.Sequential();                 -- make a multi-layer perceptron
       mlp:add(nn.SpatialConvolution(1, 6, 5, 5)) -- output 28x28
       mlp:add(nn.Tanh())
-      mlp:add(nn.SpatialSubSampling(6, 2, 2, 2, 2)) --output 14x14
+      mlp:add(nn.SpatialMaxPooling(2, 2, 2, 2)) --output 14x14
       mlp:add(nn.Tanh())
       mlp:add(nn.SpatialConvolution(6, 16, 5, 5)) -- output 10x10
       mlp:add(nn.Tanh())
-      mlp:add(nn.SpatialSubSampling(16, 2, 2, 2, 2)) -- output 5x5
+      mlp:add(nn.SpatialMaxPooling(2, 2, 2, 2)) -- output 5x5
       mlp:add(nn.Tanh())
       mlp:add(nn.Reshape(16*5*5))
       mlp:add(nn.Linear(16*5*5, 120))
@@ -317,12 +341,13 @@ if not params.nocnn then
 
       local trainer = nn.StochasticGradient(mlp, criterion)
 
+      trainer.hookExample, trainer.hookIteration = hooks(params)
       trainer.learningRate = 0.01
       trainer.shuffleIndices = false
-      trainer.maxIteration = 1
+      trainer.maxIteration = params.iter
       local t = torch.Timer()
       trainer:train(dataset)
-      printlog(string.format("cnn_32x32\t%.2f", params.nexcnn/t:time().real))
+      printlog(string.format("cnn_32x32\t%.2f", params.iter*params.nexcnn/t:time().real))
    end
    
    if true then --LeNet5-like 96x96
@@ -332,11 +357,11 @@ if not params.nocnn then
       local mlp = nn.Sequential();                 -- make a multi-layer perceptron
       mlp:add(nn.SpatialConvolution(1, 6, 7, 7)) -- output 90x90
       mlp:add(nn.Tanh())
-      mlp:add(nn.SpatialSubSampling(6, 3, 3, 3, 3)) --output 30x30
+      mlp:add(nn.SpatialMaxPooling(3, 3, 3, 3)) --output 30x30
       mlp:add(nn.Tanh())
       mlp:add(nn.SpatialConvolution(6, 16, 7, 7)) -- output 24x24
       mlp:add(nn.Tanh())
-      mlp:add(nn.SpatialSubSampling(16, 3, 3, 3, 3)) -- output 8x8
+      mlp:add(nn.SpatialMaxPooling(3, 3, 3, 3)) -- output 8x8
       mlp:add(nn.Tanh())
       mlp:add(nn.Reshape(16*8*8))
       mlp:add(nn.Linear(16*8*8, 120))
@@ -364,12 +389,13 @@ if not params.nocnn then
 
       local trainer = nn.StochasticGradient(mlp, criterion)
 
+      trainer.hookExample, trainer.hookIteration = hooks(params)
       trainer.learningRate = 0.01
       trainer.shuffleIndices = false
-      trainer.maxIteration = 1
+      trainer.maxIteration = params.iter
       local t = torch.Timer()
       trainer:train(dataset)
-      printlog(string.format("cnn_96x96\t%.2f", params.nexcnn/t:time().real))
+      printlog(string.format("cnn_96x96\t%.2f", params.iter*params.nexcnn/t:time().real))
    end
 
    if true then --LeNet5-like 256x256
@@ -379,11 +405,11 @@ if not params.nocnn then
       local mlp = nn.Sequential();                 -- make a multi-layer perceptron
       mlp:add(nn.SpatialConvolution(1, 6, 7, 7)) -- output 250x250
       mlp:add(nn.Tanh())
-      mlp:add(nn.SpatialSubSampling(6, 5, 5, 5, 5)) --output 50x50
+      mlp:add(nn.SpatialMaxPooling(5, 5, 5, 5)) --output 50x50
       mlp:add(nn.Tanh())
       mlp:add(nn.SpatialConvolution(6, 16, 7, 7)) -- output 44x44
       mlp:add(nn.Tanh())
-      mlp:add(nn.SpatialSubSampling(16, 4, 4, 4, 4)) -- output 11x11
+      mlp:add(nn.SpatialMaxPooling(4, 4, 4, 4)) -- output 11x11
       mlp:add(nn.Tanh())
       mlp:add(nn.Reshape(16*11*11))
       mlp:add(nn.Linear(16*11*11, 120))
@@ -411,11 +437,12 @@ if not params.nocnn then
 
       local trainer = nn.StochasticGradient(mlp, criterion)
       
+      trainer.hookExample, trainer.hookIteration = hooks(params)
       trainer.learningRate = 0.01
       trainer.shuffleIndices = false
-      trainer.maxIteration = 1
+      trainer.maxIteration = params.iter
       local t = torch.Timer()
       trainer:train(dataset)
-      printlog(string.format("cnn_256x256\t%.2f", params.nexcnn/t:time().real))
+      printlog(string.format("cnn_256x256\t%.2f", params.iter*params.nexcnn/t:time().real))
    end
 end

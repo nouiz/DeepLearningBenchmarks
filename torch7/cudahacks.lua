@@ -1,17 +1,13 @@
-torch.CudaTensor.lab = {}
+if not torch.CudaTensor.torch then
+   torch.CudaTensor.torch = {}
+   
+   function torch.CudaTensor.torch.randn(...)
+      return torch.FloatTensor.torch.randn(...):cuda()
+   end
 
-local lab = torch.CudaTensor.lab
+   function torch.CudaTensor.torch.rand(...)
+      return torch.FloatTensor.torch.rand(...):cuda()
+   end
 
-function lab.randn(...)
-   local t = torch.FloatTensor.lab.randn(...)
-   return torch.Tensor(t:size()):copy(t)
+   torch.CudaTensor.torch.uniform = torch.Tensor.uniform
 end
-
--- local nn = torch.CudaTensor.nn
-
--- function nn.LogSoftMax_forward(self, input)
---    local t = torch.FloatTensor(input:size()):copy(input)
---    self.output = torch.FloatTensor()
---    return torch.FloatTensor.nn.LogSoftMax_forward(self, t)
--- end
-
