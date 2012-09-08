@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # HACKS TO USE OPENBLAS
-export LIBRARY_PATH=./lib:~/.VENV/base/lib:$LIBRARY_PATH
-export LD_LIBRARY_PATH=./lib:~/.VENV/base/lib:$LD_LIBRARY_PATH
+#export LIBRARY_PATH=./lib:~/.VENV/base/lib:$LIBRARY_PATH
+#export LD_LIBRARY_PATH=./lib:~/.VENV/base/lib:$LD_LIBRARY_PATH
 
 #-convfast use "fast" convolution code instead of standard [false]
 #-openmp   use openmp *package* [false]
@@ -15,15 +15,25 @@ export LD_LIBRARY_PATH=./lib:~/.VENV/base/lib:$LD_LIBRARY_PATH
 # this would use GEMM for convolution, Koray said this was not use
 # and it makes a huge unrolled matrix for large problems.
 USE_CONVFAST=""
-
-for batchsize in 1 10 100 ; do
+LUA=~/.local/bin/torch
+mkdir -p outs
+date
+for batchsize in 1 10 60 100 ; do
     for PREC in 32 64 ; do
+	if [ "$batchsize" == "1" ]; then
+	    CONT=""
+	else
+	    CONT="-nocont"
+	fi
+
+        OUTPUT=outs/run.sh.results_${HOSTNAME}_b${batchsize}_p${PREC}
+	print $OUTPUT
         if true ; then
-            OUTPUT=run.sh.results_${HOSTNAME}_b${batchsize}_p${PREC}
+            export OMP_NUM_THREADS=1
             echo "Running normal" $OUTPUT
             echo "host=$HOSTNAME" > "$OUTPUT"
             echo "device=CPU" >> "$OUTPUT"
-            echo "OpenMP=0" >> "$OUTPUT"
+            echo "OMP_NUM_THREADS=1" >> "$OUTPUT"
             echo "batch=$batchsize" >> "$OUTPUT"
             echo "precision=$PREC" >> "$OUTPUT"
             if [ $PREC = 32 ] ; then
@@ -32,41 +42,42 @@ for batchsize in 1 10 100 ; do
                 USE_DOUBLE="-double"
             fi
 
-            ~/local/bin/lua benchmark.lua -batch $batchsize $USE_DOUBLE >> "$OUTPUT"
+            ${LUA} benchmark.lua -batch $batchsize $USE_DOUBLE $CONT &>> "$OUTPUT"
         fi
 
         if true ; then
-            OUTPUT=run.sh.results_${HOSTNAME}_b${batchsize}_p${PREC}_openmp
-            echo "Running OpenMP " $OUTPUT
-            echo "host=$HOSTNAME" > "$OUTPUT"
-            echo "device=CPU" >> "$OUTPUT"
-            echo "OpenMP=1" >> "$OUTPUT"
-            echo "batch=$batchsize" >> "$OUTPUT"
-            echo "precision=$PREC" >> "$OUTPUT"
+            unset OMP_NUM_THREADS
+            echo "Running OpenMP " ${OUTPUT}_openmp
+            echo "host=$HOSTNAME" > "${OUTPUT}_openmp"
+            echo "device=CPU" >> "${OUTPUT}_openmp"
+            echo "OMP_NUM_THREADS=unset" >> "${OUTPUT}_openmp"
+            echo "batch=$batchsize" >> "${OUTPUT}_openmp"
+            echo "precision=$PREC" >> "${OUTPUT}_openmp"
             if [ $PREC = 32 ] ; then
                 USE_DOUBLE=""
             else
                 USE_DOUBLE="-double"
             fi
-            ~/local/bin/lua benchmark.lua -batch $batchsize $USE_DOUBLE -openmp >> "$OUTPUT"
+            ${LUA} benchmark.lua -batch $batchsize $USE_DOUBLE $CONT &>> "${OUTPUT}_openmp"
         fi
 
-        if true ; then
-            OUTPUT=run.sh.results_${HOSTNAME}_b${batchsize}_p${PREC}_cuda
-            echo "Running CUDA " $OUTPUT
-            echo "host=$HOSTNAME" > "$OUTPUT"
-            echo "device=GTX480" >> "$OUTPUT"
-            echo "OpenMP=0" >> "$OUTPUT"
-            echo "batch=$batchsize" >> "$OUTPUT"
-            echo "precision=32" >> "$OUTPUT"
+        if [ $PREC = 32 ] ; then
+            export OMP_NUM_THREADS=1
+            echo "Running CUDA " ${OUTPUT}_cuda
+            echo "host=$HOSTNAME" > "${OUTPUT}_cuda"
+            echo "device=GPU" >> "${OUTPUT}_cuda"
+            echo "OMP_NUM_THREADS=1" >> "${OUTPUT}_cuda"
+            echo "OpenMP=0" >> "${OUTPUT}_cuda"
+            echo "batch=$batchsize" >> "${OUTPUT}_cuda"
+            echo "precision=32" >> "${OUTPUT}_cuda"
+            nvidia-smi >> "${OUTPUT}_cuda"
             if [ $PREC = 32 ] ; then
                 USE_DOUBLE=""
             else
                 USE_DOUBLE="-double"
             fi
-            ~/local/bin/lua benchmark.lua -batch $batchsize $USE_DOUBLE -cuda >> "$OUTPUT"
+            ${LUA} benchmark.lua -batch $batchsize $USE_DOUBLE -cuda $CONT &>> "${OUTPUT}_cuda"
         fi
     done
 done
-
-
+date
