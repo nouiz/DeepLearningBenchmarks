@@ -63,6 +63,10 @@ def build_db(paths='.'):
                     else:
                         d['device'] = 'unknow'
                     sp = impl.split('/')
+                    if "linker=cvm_nogc}" in impl:
+                        d['linker'] = "cvm_nogc"
+                    elif "linker=cvm}" in impl:
+                        d['linker'] = "cvm"
                     if 'batch_size=' in impl:
                         d['batch'] = [int(part[11:]) for part in sp
                                       if part.startswith('batch_size=')][0]
