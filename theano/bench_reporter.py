@@ -153,24 +153,53 @@ class BenchmarkReporter(object):
     def eval_model(self, train, name):
         if self.algorithm == Algorithms.CONTROL:
             self._eval_model_control(train, name)
-        if self.algorithm in [Algorithms.MLP, Algorithms.CONVNET]:
+        if self.algorithm in [Algorithms.MLP, Algorithms.CONVNET,
+                              Algorithms.RBM]:
             self._eval_model_mlp(train, name)
-        elif self.algorithm == Algorithms.RBM:
-            self._eval_model_rbm(train, name)
 
-    def simple_eval_model(self, train, name):
+    def bypass_eval_model(self, train, name, init_to_zero=None):
         assert self.num_examples % self.batch_size == 0
         bmark = self.get_bmark_name(name)
+        nb_batch = int(math.ceil(self.num_examples / self.batch_size))
+
+        #No inputs
+        if init_to_zero:
+            init_to_zero.set_value(0)
         self.stop_watch.start()
-        train.fn(n_calls=self.num_examples)
+        [train() for i in xrange(nb_batch)]
         time = self.stop_watch.stop()
         self.add_speed(time)
-        self._report_model(name, self.batch_size, self.stop_watch.stop(),
-                bmark)
+        self._report_model(name + "_bypass_noinputs", self.batch_size,
+                           time, bmark)
+
+        # bypass parsing of inputs
+        if init_to_zero:
+            init_to_zero.set_value(0)
+        self.stop_watch.start()
+
+        [train.fn() for i in xrange(nb_batch)]
+        time = self.stop_watch.stop()
+        self.add_speed(time)
+        self._report_model(name + "_bypass_inputs_parsing", self.batch_size,
+                           time, bmark)
+
+        # loop in c
+        if init_to_zero:
+            init_to_zero.set_value(0)
+        self.stop_watch.start()
+        train.fn(n_calls=nb_batch)
+        time = self.stop_watch.stop()
+        self.add_speed(time)
+        self._report_model(name + "_bypass_c_loop", self.batch_size,
+                           time, bmark)
 
     def _eval_model_control(self, train, name):
         bmark = self.get_bmark_name(name)
-        elapsed_time = train()
+
+        self.stop_watch.start()
+        for i in range(10):
+            train()
+        elapsed_time = self.stop_watch.stop()
         self.add_speed(elapsed_time)
         self._report_model(name, self.batch_size, elapsed_time, bmark)
 
@@ -178,22 +207,23 @@ class BenchmarkReporter(object):
         assert self.num_examples % self.batch_size == 0
         bmark = self.get_bmark_name(name)
         nb_batch = int(math.ceil(self.num_examples / self.batch_size))
+        batch_size = np.asarray(self.batch_size)
+        starts = [np.asarray(i) for i in np.arange(nb_batch) * batch_size]
         self.stop_watch.start()
-        for i in xrange(nb_batch):
-            cost = train(i * self.batch_size, self.batch_size)
+        for i in starts:
+            cost = train(i, batch_size)
         elapsed_time = self.stop_watch.stop()
         self.add_speed(time)
         self._report_model(name, self.batch_size, elapsed_time, bmark)
 
-    def _eval_model_rbm(self, train, name):
-        assert self.num_examples % self.batch_size == 0
-        bmark = self.get_bmark_name(name)
+        train.trust_input = True
         self.stop_watch.start()
-        for i in xrange(self.niter):
-            train(i * self.batch_size, self.batch_size)
+        for i in starts:
+            cost = train(i, batch_size)
         elapsed_time = self.stop_watch.stop()
-        self.add_speed(elapsed_time)
-        self._report_model(name, self.batch_size, elapsed_time, bmark)
+        self.add_speed(time)
+        self._report_model(name + "_trust_input", self.batch_size,
+                           elapsed_time, bmark)
 
     def _report_model(self, name, batch_size, elapsed_time, bmark):
         if self.algorithm == Algorithms.CONTROL:
@@ -209,8 +239,9 @@ class BenchmarkReporter(object):
             prec = 'float'
         else:
             prec = 'double'
-        bmark.write("theano{%s/%s/openmp=%s}\t" % (
-        config.device[0:3], prec, os.getenv("OMP_NUM_THREADS", "")))
+        bmark.write("theano{%s/%s/openmp=%s/linker=%s}\t" % (
+            config.device[0:3], prec, os.getenv("OMP_NUM_THREADS", ""),
+            config.linker))
         bmark.write("%.2f\n" % elapsed_time)
 
     def _report_model_exemple_per_seconds(self, name, batch_size,
@@ -220,9 +251,10 @@ class BenchmarkReporter(object):
             prec = 'float'
         else:
             prec = 'double'
-        bmark.write("theano{%s/%s/batch_size=%i/openmp=%s}\t" % (
-        config.device[0:3], prec, batch_size,
-            os.getenv("OMP_NUM_THREADS", "")))
+        bmark.write("theano{%s/%s/batch_size=%i/openmp=%s/linker=%s}\t" % (
+            config.device[0:3], prec, batch_size,
+            os.getenv("OMP_NUM_THREADS", ""),
+            config.linker))
         # report examples / second
         bmark.write("%.2f\n" % (self.num_examples / elapsed_time))
 
@@ -232,9 +264,10 @@ class BenchmarkReporter(object):
             prec = 'float'
         else:
             prec = 'double'
-        bmark.write("theano{%s/%s/%i/openmp=%s}\t" % (
+        bmark.write("theano{%s/%s/batch_size=%i/openmp=%s/linker=%s}\t" % (
             config.device[0:3], prec, batch_size,
-            os.getenv("OMP_NUM_THREADS", "")))
+            os.getenv("OMP_NUM_THREADS", ""),
+            config.linker))
         bmark.write("%.2f\n" % (self.niter * elapsed_time))
 
     def compare(self, x, y):
