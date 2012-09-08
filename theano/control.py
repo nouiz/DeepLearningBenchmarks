@@ -1,5 +1,6 @@
 import os
 
+import numpy
 from numpy import random
 
 import theano
@@ -13,9 +14,24 @@ iters = 10
 
 GlobalBenchReporter.__init__(algo=Algorithms.CONTROL)
 
-for order in ['C', 'F']:
+for order in ['C']:  # , 'F']: they give mostly the same time.
     for size in sizes:
-        def train():
-            return execute(verbose=False, M=size, N=size, K=size,
-                           iters=iters, order=order)[0]
-        GlobalBenchReporter.eval_model(train, "control_%s" % size)
+        a = theano.shared(random.rand(size, size).astype(theano.config.floatX))
+        b = theano.shared(random.rand(size, size).astype(theano.config.floatX))
+        c = theano.shared(random.rand(size, size).astype(theano.config.floatX))
+        f = theano.function([], updates={c: theano.tensor.dot(a, b)},
+                            mode=theano.compile.ProfileMode())
+
+        GlobalBenchReporter.eval_model(f, "control_mm_%s" % size)
+
+        f = theano.function([],
+                            updates={c: 0.4 * c + .8 * theano.tensor.dot(a, b)},
+                            mode=theano.compile.ProfileMode())
+
+        GlobalBenchReporter.eval_model(f, "control_mm_gemm_%s" % size)
+
+        f = theano.function([],
+                            updates={c: theano.tensor.blas.gemm_no_inplace(c, 0.4, a, b, .8)},
+                            mode=theano.compile.ProfileMode())
+
+        GlobalBenchReporter.eval_model(f, "control_addmm_%s" % size)

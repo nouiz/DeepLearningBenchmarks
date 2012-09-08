@@ -10,6 +10,7 @@ cmd:text()
 cmd:text('Misc options:')
 cmd:option('-nomlp', false, 'do not perform MLP tests')
 cmd:option('-nocnn', false, 'do not perform CNN tests')
+cmd:option('-nocont', false, 'do not perform CONTROL tests')
 cmd:option('-nexmlp', 60000, '# of examples for the MLPs')
 cmd:option('-nexcnn', 6000, '# of examples for the CNNs')
 cmd:option('-hardtanh', false, 'use hardtanh instead of tanh')
@@ -63,6 +64,43 @@ else
 end
 
 local noutput = 10
+
+if not params.nocont then
+--Theano updates = {c: 0.4 * c + .8 * T.dot(a, b)}
+--  [res] torch.addmm([res,] [v1,] M [v2,] mat1, mat2)
+--  res = v1 * M + v2 * mat1*mat2
+ for size = 500, 2500, 500 do
+    mat1 = torch.randn(size, size)
+    mat2 = torch.randn(size, size)
+    res = torch.randn(size, size)
+
+--cuda don't support res:mm, torch.mm or torch.addmm
+    if not params.cuda then
+      tmp = torch.randn(size, size)
+      local t = torch.Timer()
+      for i=1,10 do
+          res:mm(mat1, mat2)
+      end
+      printlog(string.format("control_mm_%d\t%.2f", size, t:time().real))
+      local t = torch.Timer()
+      for i=1,10 do
+        tmp:mm(mat1, mat2)
+	tmp = tmp * 0.8
+        res = res * 0.4
+        res = res + tmp
+
+      end
+      printlog(string.format("control_mm_gemm_%d\t%.2f", size, t:time().real))
+    end
+
+    local t = torch.Timer()
+    for i=1,10 do
+        res:addmm(0.4,0.8, mat1, mat2)
+    end
+    printlog(string.format("control_addmm_%d\t%.2f", size, t:time().real))
+ end
+end
+
 
 if not params.nomlp then
 
