@@ -7,33 +7,28 @@
 # THEANO_FLAGS="device=cpu,floatX=float64,blas.ldflags=-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_def -lpthread" python mlp.py
 
 BLAS='blas.ldflags=-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_def'
-BLAS='blas.ldflags=-lopenblas -L/u/bastienf/repos/OpenBLAS'
+BLAS='blas.ldflags=-lopenblas'
 mkdir -p outs
 #TODO past linker was c|py_nogc. Do this make a big difference?
 BLAS32='device=cpu,floatX=float32',$BLAS
 BLAS64='device=cpu,floatX=float64',$BLAS
 GPU32='device=gpu0,floatX=float32,force_device=True'
 
-#MLP tests need the cvm linker.
-BLAS32_MLP='device=cpu,floatX=float32',$BLAS
-BLAS64_MLP='device=cpu,floatX=float64',$BLAS
-GPU32_MLP='device=gpu0,floatX=float32,force_device=True'
-
 cat /proc/cpuinfo |grep "model name"|uniq > outs/${HOSTNAME}_config.conf
 free >> outs/${HOSTNAME}_config.conf
 uname -a >>  outs/${HOSTNAME}_config.conf
 w >> outs/${HOSTNAME}_config.conf
-THEANO_FLAGS="$BLAS32_MLP" python -c "import theano; print 'blas',theano.config.blas.ldflags; print 'amdlibm',theano.config.lib.amdlibm" >> outs/${HOSTNAME}_config.conf
+THEANO_FLAGS="$BLAS32" python -c "import theano; print 'blas',theano.config.blas.ldflags; print 'amdlibm',theano.config.lib.amdlibm" >> outs/${HOSTNAME}_config.conf
 
 if true ; then
     echo "Run control"
     export OMP_NUM_THREADS=1
-    (THEANO_FLAGS="$BLAS32_MLP" python control.py 2>> outs/${HOSTNAME}_control_cpu32.err >> outs/${HOSTNAME}_control_cpu32.out) &&
-    #(THEANO_FLAGS="$BLAS64_MLP" python control.py 2>> outs/${HOSTNAME}_control_cpu64.err >> outs/${HOSTNAME}_control_cpu64.out) &&
-    (THEANO_FLAGS="$GPU32_MLP" python control.py 2>> outs/${HOSTNAME}_control_gpu32.err >> outs/${HOSTNAME}_control_gpu32.out) ;
+    (THEANO_FLAGS="$BLAS32" python control.py 2>> outs/${HOSTNAME}_control_cpu32.err >> outs/${HOSTNAME}_control_cpu32.out) &&
+    #(THEANO_FLAGS="$BLAS64" python control.py 2>> outs/${HOSTNAME}_control_cpu64.err >> outs/${HOSTNAME}_control_cpu64.out) &&
+    (THEANO_FLAGS="$GPU32" python control.py 2>> outs/${HOSTNAME}_control_gpu32.err >> outs/${HOSTNAME}_control_gpu32.out) ;
     unset OMP_NUM_THREADS
-    (THEANO_FLAGS="$BLAS32_MLP" python control.py 2>> outs/${HOSTNAME}_control_cpu32_openmp.err >> outs/${HOSTNAME}_control_cpu32_openmp.out)
-    #(THEANO_FLAGS="$BLAS64_MLP" python control.py 2>> outs/${HOSTNAME}_control_cpu64_openmp.err >> outs/${HOSTNAME}_control_cpu64_openmp.out);
+    (THEANO_FLAGS="$BLAS32" python control.py 2>> outs/${HOSTNAME}_control_cpu32_openmp.err >> outs/${HOSTNAME}_control_cpu32_openmp.out)
+    #(THEANO_FLAGS="$BLAS64" python control.py 2>> outs/${HOSTNAME}_control_cpu64_openmp.err >> outs/${HOSTNAME}_control_cpu64_openmp.out);
 fi
 
 for linker in cvm cvm_nogc;
@@ -44,12 +39,12 @@ do
     if true ; then
         echo "batch $batch MLP"
         export OMP_NUM_THREADS=1
-        (THEANO_FLAGS="$BLAS32_MLP",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_cpu32.err >> outs/${HOSTNAME}_mlp_cpu32.out) &&
-#        (THEANO_FLAGS="$BLAS64_MLP",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_cpu64.err >> outs/${HOSTNAME}_mlp_cpu64.out) &&
-        (THEANO_FLAGS="$GPU32_MLP",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_gpu32.err >> outs/${HOSTNAME}_mlp_gpu32.out) ;
+        (THEANO_FLAGS="$BLAS32",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_cpu32.err >> outs/${HOSTNAME}_mlp_cpu32.out) &&
+#        (THEANO_FLAGS="$BLAS64",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_cpu64.err >> outs/${HOSTNAME}_mlp_cpu64.out) &&
+        (THEANO_FLAGS="$GPU32",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_gpu32.err >> outs/${HOSTNAME}_mlp_gpu32.out) ;
         unset OMP_NUM_THREADS
-        (THEANO_FLAGS="$BLAS32_MLP",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_cpu32_openmp.err >> outs/${HOSTNAME}_mlp_cpu32_openmp.out)
-#        (THEANO_FLAGS="$BLAS64_MLP",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_cpu64_openmp.err >> outs/${HOSTNAME}_mlp_cpu64_openmp.out)
+        (THEANO_FLAGS="$BLAS32",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_cpu32_openmp.err >> outs/${HOSTNAME}_mlp_cpu32_openmp.out)
+#        (THEANO_FLAGS="$BLAS64",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_cpu64_openmp.err >> outs/${HOSTNAME}_mlp_cpu64_openmp.out)
     fi
     if true ; then
         echo "batch $batch CONV"
