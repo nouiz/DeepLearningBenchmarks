@@ -18,14 +18,14 @@ USE_CONVFAST=""
 LUA=~/.local/bin/torch
 mkdir -p outs
 date
-for batchsize in 1 10 60 100 ; do
-    for PREC in 32 64 ; do
+for PREC in 32 ; do #64 ; do
+    for batchsize in 1 10 60 ; do
 	if [ "$batchsize" == "1" ]; then
 	    CONT=""
 	else
 	    CONT="-nocont"
 	fi
-
+	CONT="${CONT} -nexmlp 6000 -nexcnn 3000"
         OUTPUT=outs/run.sh.results_${HOSTNAME}_b${batchsize}_p${PREC}
 	print $OUTPUT
         if true ; then
