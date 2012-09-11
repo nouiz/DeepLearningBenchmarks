@@ -31,7 +31,7 @@ def zeros(*size):
     return numpy.zeros(size, dtype=config.floatX)
 
 
-n_examples = 60000
+n_examples = 6000
 inputs = 784
 outputs = 10
 lr = numpy.asarray(0.01, dtype=config.floatX)
@@ -69,7 +69,7 @@ def online_mlp_784_10():
                 v: v - lr * gv,
                 c: c - lr * gc,
                 si:  (si + 1) % n_examples})
-    theano.printing.debugprint(train, file=open('foo_train', 'wb'))
+    #theano.printing.debugprint(train, file=open('foo_train', 'wb'))
     GlobalBenchReporter.simple_eval_model(train, 'mlp_784_10_hack')
     try:
         train.fn.update_profile(train.profile)
@@ -114,7 +114,7 @@ def online_mlp_784_500_10():
                 v: v - lr * gv,
                 c: c - lr * gc,
                 si: (si + 1) % n_examples})
-    theano.printing.debugprint(train, file=open('foo_train', 'wb'))
+    #theano.printing.debugprint(train, file=open('foo_train', 'wb'))
     GlobalBenchReporter.simple_eval_model(train, "mlp_784_500_10_hack")
     try:
         train.fn.update_profile(train.profile)
@@ -150,7 +150,7 @@ def online_mlp_784_1000_1000_1000_10():
     updates = [(p, p - lr * gp) for p, gp in zip(params, gparams)]
     updates += [(si, (si + 1) % n_examples)]
     train = function([], [], updates=updates)
-    theano.printing.debugprint(train, file=open('foo_train', 'wb'))
+    #theano.printing.debugprint(train, file=open('foo_train', 'wb'))
     GlobalBenchReporter.simple_eval_model(train,
                                           "mlp_784_1000_1000_1000_10_hack")
     try:
@@ -175,7 +175,7 @@ def bench_logreg():
 
     gv, gc = grad(cost, [v, c])
 
-    theano.printing.debugprint(grad(cost, [v, c]), file=open('foo', 'wb'))
+    #theano.printing.debugprint(grad(cost, [v, c]), file=open('foo', 'wb'))
     train = function([si, nsi], [],
                      updates={v: v - lr * gv, c: c - lr * gc},
                      name=name)

@@ -31,7 +31,7 @@ def randint(size, high):
 def zeros(*size):
     return numpy.zeros(size, dtype=config.floatX)
 
-n_examples = 6000
+n_examples = 3000
 outputs = 10
 lr = numpy.asarray(0.01, dtype=config.floatX)
 
