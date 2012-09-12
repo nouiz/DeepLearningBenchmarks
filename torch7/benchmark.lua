@@ -90,7 +90,7 @@ if not params.nocont then
 --Theano updates = {c: 0.4 * c + .8 * T.dot(a, b)}
 --  [res] torch.addmm([res,] [v1,] M [v2,] mat1, mat2)
 --  res = v1 * M + v2 * mat1*mat2
- for size = 500, 2500, 500 do
+ for size = 2000, 2000, 500 do
     mat1 = torch.randn(size, size)
     mat2 = torch.randn(size, size)
     res = torch.randn(size, size)

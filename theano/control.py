@@ -10,6 +10,7 @@ from bench_reporter import *
 
 random.seed(2344)
 sizes = [500, 1000, 1500, 2000, 2500]
+sizes = [2000]
 iters = 10
 
 GlobalBenchReporter.__init__(algo=Algorithms.CONTROL)
