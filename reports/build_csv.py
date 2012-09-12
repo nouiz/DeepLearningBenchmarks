@@ -52,8 +52,10 @@ def build_db(paths='.'):
                     d = {}
                     if "openmp=1" in impl:
                         d['OMP_NUM_THREADS'] = 1
-                    elif "openmp=}" in impl:
-                        d['OMP_NUM_THREADS'] = -1
+                    elif "openmp=4" in impl:
+                        d['OMP_NUM_THREADS'] = 4
+                    elif "openmp=}" in impl or "openmp=/" in impl:
+                        d['OMP_NUM_THREADS'] = "unset"
                     else:
                         d['OMP_NUM_THREADS'] = "unknow"
                     if 'cpu' in impl:
@@ -76,15 +78,10 @@ def build_db(paths='.'):
                         d['precision'] = 64
                     else:
                         d['precision'] = -1
-                    d['host'] = bmark[:bmark.index('.ca')+3]
-                    if task == "ConvLarge":
-                        task = "cnn_256x256"
-                    elif task == "ConvMed":
-                        task = "cnn_96x96"
-                    elif task == "ConvSmall":
-                        task = "cnn_32x32"
-                    if task.startswith("control_"):
-                        task = "control_addmm_" + task[8:]
+                    d['host'] = bmark[:bmark.index('.ca') + 3]
+                    task = task.replace("ConvLarge", "cnn_256x256")
+                    task = task.replace("ConvMed", "cnn_96x96")
+                    task = task.replace("ConvSmall", "cnn_32x32")
                     d['problem'] = task
                     d['speed'] = float(t)
                     results.append(d)
