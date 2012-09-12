@@ -14,6 +14,8 @@
 
 # this would use GEMM for convolution, Koray said this was not use
 # and it makes a huge unrolled matrix for large problems.
+export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH
+
 USE_CONVFAST=""
 LUA=~/.local/bin/torch
 mkdir -p outs

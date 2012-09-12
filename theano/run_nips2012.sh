@@ -6,6 +6,7 @@
 # LIBRARY_PATH to include        /u/bergstrj/pub/intel/mkl/10.2.4.032/lib/em64t
 # THEANO_FLAGS="device=cpu,floatX=float64,blas.ldflags=-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_def -lpthread" python mlp.py
 
+export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH
 BLAS='blas.ldflags=-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_def'
 BLAS='blas.ldflags=-lopenblas'
 mkdir -p outs
