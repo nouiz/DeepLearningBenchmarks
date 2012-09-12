@@ -275,8 +275,8 @@ if not params.nocnn then
    function createcnndataset(nex,w,h)
       local dataset = {}
       local data = torch.randn(nex, 1, w, h)
-      local label = torch.LongTensor(params.nexmlp)
-      for i=1,params.nexmlp do
+      local label = torch.LongTensor(nex)
+      for i=1,nex do
          label[i] = (i % noutput) + 1
       end
 
