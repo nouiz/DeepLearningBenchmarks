@@ -218,7 +218,7 @@ def bench_ConvLarge(batchsize):
     gparams = grad(cost, params)
 
     train2 = function([si, nsi], cost,
-                      updates=[(p, p - lr * gp) for p, gp in zip(params, gparams) + [(ssi, ssi + snsi)]],
+                      updates=[(p, p - lr * gp) for p, gp in zip(params, gparams)] + [(ssi, ssi + snsi)]],
                       name=name)
     GlobalBenchReporter.bypass_eval_model(train2, name, init_to_zero=ssi)
 
