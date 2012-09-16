@@ -23,6 +23,11 @@ USE_CONVFAST=""
 mkdir -p outs
 date
 for PREC in 32 ; do #64 ; do
+    if [ $PREC = 32 ] ; then
+        USE_DOUBLE=""
+    else
+        USE_DOUBLE="-double"
+    fi
     for batchsize in 1 10 60 ; do
 	if [ "$batchsize" == "1" ]; then
 	    CONT=""
@@ -40,29 +45,19 @@ for PREC in 32 ; do #64 ; do
             echo "OMP_NUM_THREADS=1" >> "$OUTPUT"
             echo "batch=$batchsize" >> "$OUTPUT"
             echo "precision=$PREC" >> "$OUTPUT"
-            if [ $PREC = 32 ] ; then
-                USE_DOUBLE=""
-            else
-                USE_DOUBLE="-double"
-            fi
-
-            ${LUA} benchmark.lua -batch $batchsize $USE_DOUBLE $CONT &>> "$OUTPUT"
+            ${LUA} benchmark.lua -batch $batchsize $USE_DOUBLE $CONT $@ &>> "$OUTPUT"
         fi
 
         if true ; then
             unset OMP_NUM_THREADS
+            export OMP_NUM_THREADS=4
             echo "Running OpenMP " ${OUTPUT}_openmp
             echo "host=$HOSTNAME" > "${OUTPUT}_openmp"
             echo "device=CPU" >> "${OUTPUT}_openmp"
-            echo "OMP_NUM_THREADS=unset" >> "${OUTPUT}_openmp"
+            echo "OMP_NUM_THREADS=$OMP_NUM_THREADS" >> "${OUTPUT}_openmp"
             echo "batch=$batchsize" >> "${OUTPUT}_openmp"
             echo "precision=$PREC" >> "${OUTPUT}_openmp"
-            if [ $PREC = 32 ] ; then
-                USE_DOUBLE=""
-            else
-                USE_DOUBLE="-double"
-            fi
-            ${LUA} benchmark.lua -batch $batchsize $USE_DOUBLE $CONT &>> "${OUTPUT}_openmp"
+            ${LUA} benchmark.lua -batch $batchsize $USE_DOUBLE $CONT $@ &>> "${OUTPUT}_openmp"
         fi
 
         if [ $PREC = 32 ] ; then
@@ -75,12 +70,7 @@ for PREC in 32 ; do #64 ; do
             echo "batch=$batchsize" >> "${OUTPUT}_cuda"
             echo "precision=32" >> "${OUTPUT}_cuda"
             nvidia-smi >> "${OUTPUT}_cuda"
-            if [ $PREC = 32 ] ; then
-                USE_DOUBLE=""
-            else
-                USE_DOUBLE="-double"
-            fi
-            ${LUA} benchmark.lua -batch $batchsize $USE_DOUBLE -cuda $CONT &>> "${OUTPUT}_cuda"
+            ${LUA} benchmark.lua -batch $batchsize $USE_DOUBLE -cuda $CONT $@ &>> "${OUTPUT}_cuda"
         fi
     done
 done
