@@ -6,9 +6,12 @@
 # LIBRARY_PATH to include        /u/bergstrj/pub/intel/mkl/10.2.4.032/lib/em64t
 # THEANO_FLAGS="device=cpu,floatX=float64,blas.ldflags=-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_def -lpthread" python mlp.py
 
-export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH
+#BLAS='blas.ldflags=-lopenblas'
 BLAS='blas.ldflags=-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_def'
-BLAS='blas.ldflags=-lopenblas'
+export LD_LIBRARY_PATH=~/repos/intel/mkl/10.2.5.035/lib/em64t:$LD_LIBRARY_PATH
+
+
 mkdir -p outs
 #TODO past linker was c|py_nogc. Do this make a big difference?
 BLAS32='device=cpu,floatX=float32',$BLAS

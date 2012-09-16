@@ -14,10 +14,12 @@
 
 # this would use GEMM for convolution, Koray said this was not use
 # and it makes a huge unrolled matrix for large problems.
-export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH
+LUA=~/.local/bin/torch
+export LD_LIBRARY_PATH=~/repos/intel/mkl/10.2.5.035/lib/em64t:$LD_LIBRARY_PATH
+LUA=~/.local.mkl.10.2.5.035/bin/torch
 
 USE_CONVFAST=""
-LUA=~/.local/bin/torch
 mkdir -p outs
 date
 for PREC in 32 ; do #64 ; do
