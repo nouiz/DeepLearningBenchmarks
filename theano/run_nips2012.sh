@@ -24,13 +24,31 @@ uname -a >>  outs/${HOSTNAME}_config.conf
 w >> outs/${HOSTNAME}_config.conf
 THEANO_FLAGS="$BLAS32" python -c "import theano; print 'blas',theano.config.blas.ldflags; print 'amdlibm',theano.config.lib.amdlibm" >> outs/${HOSTNAME}_config.conf
 
-if true ; then
+NOMLP=0
+NOCNN=0
+NOCONT=0
+for i in $@; do
+    if [ "$i" == "-nomlp" ]; then
+	NOMLP=1
+	echo "SKIP MLP"
+    elif [ "$i" == "-nocnn" ]; then
+	NOCNN=1
+	echo "SKIP CNN"
+    elif [ "$i" == "-nocont" ]; then
+	NOCONT=1
+	echo "SKIP CONT"
+    else
+	echo "UNKNOW PARAM: $i"
+    fi
+done
+
+if [ "$NOCONT" == "0" ]; then
     echo "Run control"
     export OMP_NUM_THREADS=1
     (THEANO_FLAGS="$BLAS32" python control.py 2>> outs/${HOSTNAME}_control_cpu32.err >> outs/${HOSTNAME}_control_cpu32.out) &&
     #(THEANO_FLAGS="$BLAS64" python control.py 2>> outs/${HOSTNAME}_control_cpu64.err >> outs/${HOSTNAME}_control_cpu64.out) &&
     (THEANO_FLAGS="$GPU32" python control.py 2>> outs/${HOSTNAME}_control_gpu32.err >> outs/${HOSTNAME}_control_gpu32.out) ;
-    unset OMP_NUM_THREADS
+    export OMP_NUM_THREADS=4
     (THEANO_FLAGS="$BLAS32" python control.py 2>> outs/${HOSTNAME}_control_cpu32_openmp.err >> outs/${HOSTNAME}_control_cpu32_openmp.out)
     #(THEANO_FLAGS="$BLAS64" python control.py 2>> outs/${HOSTNAME}_control_cpu64_openmp.err >> outs/${HOSTNAME}_control_cpu64_openmp.out);
 fi
@@ -38,25 +56,25 @@ fi
 for linker in cvm cvm_nogc;
 do
   echo "Run $linker"
-  for batch in 1 10 60;
+  for batch in 1 5 10 60;
   do
-    if true ; then
+    if [ "$NOMLP" == "0" ]; then
         echo "batch $batch MLP"
         export OMP_NUM_THREADS=1
         (THEANO_FLAGS="$BLAS32",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_cpu32.err >> outs/${HOSTNAME}_mlp_cpu32.out) &&
 #        (THEANO_FLAGS="$BLAS64",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_cpu64.err >> outs/${HOSTNAME}_mlp_cpu64.out) &&
         (THEANO_FLAGS="$GPU32",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_gpu32.err >> outs/${HOSTNAME}_mlp_gpu32.out) ;
-        unset OMP_NUM_THREADS
+	export OMP_NUM_THREADS=4
         (THEANO_FLAGS="$BLAS32",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_cpu32_openmp.err >> outs/${HOSTNAME}_mlp_cpu32_openmp.out)
 #        (THEANO_FLAGS="$BLAS64",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_cpu64_openmp.err >> outs/${HOSTNAME}_mlp_cpu64_openmp.out)
     fi
-    if true ; then
+    if [ "$NOCNN" == "0" ]; then
         echo "batch $batch CONV"
         export OMP_NUM_THREADS=1
         (THEANO_FLAGS="$BLAS32",linker=$linker python convnet.py --batch $batch 2>> outs/${HOSTNAME}_convnet_cpu32.err >> outs/${HOSTNAME}_convnet_cpu32.out) &&
 #        (THEANO_FLAGS="$BLAS64",linker=$linker python convnet.py --batch $batch 2>> outs/${HOSTNAME}_convnet_cpu64.err >> outs/${HOSTNAME}_convnet_cpu64.out) &&
         (THEANO_FLAGS="$GPU32",linker=$linker python convnet.py --batch $batch 2>> outs/${HOSTNAME}_convnet_gpu32.err >> outs/${HOSTNAME}_convnet_gpu32.out) ;
-        unset OMP_NUM_THREADS
+	export OMP_NUM_THREADS=4
         (THEANO_FLAGS="$BLAS32",linker=$linker python convnet.py --batch $batch 2>> outs/${HOSTNAME}_convnet_cpu32_openmp.err >> outs/${HOSTNAME}_convnet_cpu32_openmp.out)
 #        (THEANO_FLAGS="$BLAS64",linker=$linker python convnet.py --batch $batch 2>> outs/${HOSTNAME}_convnet_cpu64_openmp.err >> outs/${HOSTNAME}_convnet_cpu64_openmp.out) &&
     fi
