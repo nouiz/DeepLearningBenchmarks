@@ -35,18 +35,21 @@ n_examples = 3000
 outputs = 10
 lr = numpy.asarray(0.01, dtype=config.floatX)
 
-data_x = shared(randn(n_examples, 1, 32, 32))
-data_y = shared(randint((n_examples,), outputs))
+data_x = shared(randn(n_examples, 1, 32, 32), name='data_x')
+data_y = shared(randint((n_examples,), outputs), name='data_y')
 
 si = lscalar()
 nsi = lscalar()
+si.name = 'si'
+nsi.name = 'nsi'
 sx = data_x[si:si + nsi]
 sy = data_y[si:si + nsi]
 
-ssi = shared(0)
-snsi = shared(0)
+ssi = shared(0, name='ssi')
+snsi = shared(0, name='snsi')
 ssx = data_x[ssi:ssi + snsi]
 ssy = data_y[ssi:ssi + snsi]
+
 
 def bench_ConvSmall(batchsize):
     name = "ConvSmall"
