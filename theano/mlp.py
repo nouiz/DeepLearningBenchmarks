@@ -36,16 +36,18 @@ inputs = 784
 outputs = 10
 lr = numpy.asarray(0.01, dtype=config.floatX)
 
-data_x = shared(randn(n_examples, inputs))
-data_y = shared(randint((n_examples,), outputs))
+data_x = shared(randn(n_examples, inputs), name='data_x')
+data_y = shared(randint((n_examples,), outputs), name='data_y')
 
 si = lscalar()
 nsi = lscalar()
+si.name = 'si'
+nsi.name = 'nsi'
 sx = data_x[si:si + nsi]
 sy = data_y[si:si + nsi]
 
-ssi = shared(0)
-snsi = shared(0)
+ssi = shared(0, name='ssi')
+snsi = shared(0, name='snsi')
 ssx = data_x[ssi:ssi + snsi]
 ssy = data_y[ssi:ssi + snsi]
 
@@ -161,16 +163,27 @@ def online_mlp_784_1000_1000_1000_10():
 
 def bench_logreg():
     name = "mlp_784_10"
-    v = shared(zeros(outputs, inputs))
-    c = shared(zeros(outputs))
+    v = shared(zeros(outputs, inputs), name='v')
+    c = shared(zeros(outputs), name='c')
+    if GlobalBenchReporter.batch_size == 1:
+        sx_ = sx.flatten()
+        sy_ = sy.flatten()
+        ssx_ = ssx.flatten()
+        ssy_ = ssy.flatten()
+    else:
+        sx_ = sx
+        sy_ = sy
+        ssx_ = ssx
+        ssy_ = ssy
+
     #
     # Note on the transposed-ness of v for some reason, this data
     # layout is faster than the non-transposed orientation.
     # The change doesn't make much difference in the deeper models,
     # but in this case it was more than twice as fast.
     #
-    p_y_given_x = softmax(dot(sx, v.T) + c)
-    nll = -log(p_y_given_x)[arange(sy.shape[0]), sy]
+    p_y_given_x = softmax(dot(sx_, v.T) + c)
+    nll = -log(p_y_given_x)[arange(sy_.shape[0]), sy_]
     cost = nll.mean()
 
     gv, gc = grad(cost, [v, c])
@@ -185,8 +198,8 @@ def bench_logreg():
     # Version with no inputs
     snsi.set_value(GlobalBenchReporter.batch_size)
 
-    p_y_given_x = softmax(dot(ssx, v.T) + c)
-    nll = -log(p_y_given_x)[arange(ssy.shape[0]), ssy]
+    p_y_given_x = softmax(dot(ssx_, v.T) + c)
+    nll = -log(p_y_given_x)[arange(ssy_.shape[0]), ssy_]
     cost = nll.mean()
 
     gv, gc = grad(cost, [v, c])
@@ -201,13 +214,23 @@ def bench_logreg():
 def bench_mlp_500():
     name = "mlp_784_500_10"
     HUs = 500
-    w = shared(rand(HUs, inputs) * numpy.sqrt(6 / (inputs + HUs)))
-    b = shared(zeros(HUs))
-    v = shared(zeros(outputs, HUs))
-    c = shared(zeros(outputs))
+    w = shared(rand(HUs, inputs) * numpy.sqrt(6 / (inputs + HUs)), name='w')
+    b = shared(zeros(HUs), name='b')
+    v = shared(zeros(outputs, HUs), name='v')
+    c = shared(zeros(outputs), name='c')
+    if GlobalBenchReporter.batch_size == 1:
+        sx_ = sx.flatten()
+        sy_ = sy.flatten()
+        ssx_ = ssx.flatten()
+        ssy_ = ssy.flatten()
+    else:
+        sx_ = sx
+        sy_ = sy
+        ssx_ = ssx
+        ssy_ = ssy
 
-    p_y_given_x = softmax(dot(tanh(dot(sx, w.T) + b), v.T) + c)
-    nll = -log(p_y_given_x)[arange(sy.shape[0]), sy]
+    p_y_given_x = softmax(dot(tanh(dot(sx_, w.T) + b), v.T) + c)
+    nll = -log(p_y_given_x)[arange(sy_.shape[0]), sy_]
     cost = nll.mean()
 
     gw, gb, gv, gc = grad(cost, [w, b, v, c])
@@ -223,8 +246,8 @@ def bench_mlp_500():
 
     # Version with no inputs
     snsi.set_value(GlobalBenchReporter.batch_size)
-    p_y_given_x = softmax(dot(tanh(dot(ssx, w.T) + b), v.T) + c)
-    nll = -log(p_y_given_x)[arange(ssy.shape[0]), ssy]
+    p_y_given_x = softmax(dot(tanh(dot(ssx_, w.T) + b), v.T) + c)
+    nll = -log(p_y_given_x)[arange(ssy_.shape[0]), ssy_]
     cost = nll.mean()
 
     gw, gb, gv, gc = grad(cost, [w, b, v, c])
@@ -241,22 +264,32 @@ def bench_mlp_500():
 
 def bench_deep1000():
     name = "mlp_784_1000_1000_1000_10"
-    w0 = shared(rand(inputs, 1000) * numpy.sqrt(6 / (inputs + 1000)))
-    b0 = shared(zeros(1000))
-    w1 = shared(rand(1000, 1000) * numpy.sqrt(6 / (1000 + 1000)))
-    b1 = shared(zeros(1000))
-    w2 = shared(rand(1000, 1000) * numpy.sqrt(6 / (1000 + 1000)))
-    b2 = shared(zeros(1000))
-    v = shared(zeros(1000, outputs))
-    c = shared(zeros(outputs))
+    w0 = shared(rand(inputs, 1000) * numpy.sqrt(6 / (inputs + 1000)), name='w0')
+    b0 = shared(zeros(1000), name='b0')
+    w1 = shared(rand(1000, 1000) * numpy.sqrt(6 / (1000 + 1000)), name='w1')
+    b1 = shared(zeros(1000), name='b1')
+    w2 = shared(rand(1000, 1000) * numpy.sqrt(6 / (1000 + 1000)), name='w2')
+    b2 = shared(zeros(1000), name='b2')
+    v = shared(zeros(1000, outputs), name='v')
+    c = shared(zeros(outputs), name='c')
+    if GlobalBenchReporter.batch_size == 1:
+        sx_ = sx.flatten()
+        sy_ = sy.flatten()
+        ssx_ = ssx.flatten()
+        ssy_ = ssy.flatten()
+    else:
+        sx_ = sx
+        sy_ = sy
+        ssx_ = ssx
+        ssy_ = ssy
     params = [w0, b0, w1, b1, w2, b2, v, c]
 
-    h0 = tanh(dot(sx, w0) + b0)
+    h0 = tanh(dot(sx_, w0) + b0)
     h1 = tanh(dot(h0, w1) + b1)
     h2 = tanh(dot(h1, w2) + b2)
 
     p_y_given_x = softmax(dot(h2, v) + c)
-    nll = -log(p_y_given_x)[arange(sy.shape[0]), sy]
+    nll = -log(p_y_given_x)[arange(sy_.shape[0]), sy_]
     cost = nll.mean()
 
     gparams = grad(cost, params)
@@ -268,12 +301,12 @@ def bench_deep1000():
     GlobalBenchReporter.eval_model(train, name)
 
     # Version with no inputs
-    h0 = tanh(dot(ssx, w0) + b0)
+    h0 = tanh(dot(ssx_, w0) + b0)
     h1 = tanh(dot(h0, w1) + b1)
     h2 = tanh(dot(h1, w2) + b2)
 
     p_y_given_x = softmax(dot(h2, v) + c)
-    nll = -log(p_y_given_x)[arange(ssy.shape[0]), ssy]
+    nll = -log(p_y_given_x)[arange(ssy_.shape[0]), ssy_]
     cost = nll.mean()
 
     gparams = grad(cost, params)
