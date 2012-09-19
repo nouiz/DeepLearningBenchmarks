@@ -163,35 +163,38 @@ class BenchmarkReporter(object):
         nb_batch = int(math.ceil(self.num_examples / self.batch_size))
 
         #No inputs
-        if init_to_zero:
-            init_to_zero.set_value(0)
-        self.stop_watch.start()
-        [train() for i in xrange(nb_batch)]
-        time = self.stop_watch.stop()
-        self.add_speed(time)
-        self._report_model(name + "_bypass_noinputs", self.batch_size,
-                           time, bmark)
+        if False:
+            if init_to_zero:
+                init_to_zero.set_value(0)
+            self.stop_watch.start()
+            [train() for i in xrange(nb_batch)]
+            time = self.stop_watch.stop()
+            self.add_speed(time)
+            self._report_model(name + "_bypass_noinputs", self.batch_size,
+                               time, bmark)
 
         # bypass parsing of inputs
-        if init_to_zero:
-            init_to_zero.set_value(0)
-        self.stop_watch.start()
+        if False:
+            if init_to_zero:
+                init_to_zero.set_value(0)
+            self.stop_watch.start()
 
-        [train.fn() for i in xrange(nb_batch)]
-        time = self.stop_watch.stop()
-        self.add_speed(time)
-        self._report_model(name + "_bypass_inputs_parsing", self.batch_size,
-                           time, bmark)
+            [train.fn() for i in xrange(nb_batch)]
+            time = self.stop_watch.stop()
+            self.add_speed(time)
+            self._report_model(name + "_bypass_inputs_parsing", self.batch_size,
+                               time, bmark)
 
         # loop in c
-        if init_to_zero:
-            init_to_zero.set_value(0)
-        self.stop_watch.start()
-        train.fn(n_calls=nb_batch)
-        time = self.stop_watch.stop()
-        self.add_speed(time)
-        self._report_model(name + "_bypass_c_loop", self.batch_size,
-                           time, bmark)
+        if True:
+            if init_to_zero:
+                init_to_zero.set_value(0)
+            self.stop_watch.start()
+            train.fn(n_calls=nb_batch)
+            time = self.stop_watch.stop()
+            self.add_speed(time)
+            self._report_model(name + "_bypass_c_loop", self.batch_size,
+                               time, bmark)
 
     def _eval_model_control(self, train, name):
         bmark = self.get_bmark_name(name)
