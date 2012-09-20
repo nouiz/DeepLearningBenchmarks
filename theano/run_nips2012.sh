@@ -56,7 +56,7 @@ fi
 for linker in cvm cvm_nogc;
 do
   echo "Run $linker"
-  for batch in 1 5 10 60;
+  for batch in 1 10 60;
   do
     if [ "$NOMLP" == "0" ]; then
         echo "batch $batch MLP"
