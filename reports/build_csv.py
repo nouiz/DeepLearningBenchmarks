@@ -79,9 +79,9 @@ def build_db(paths='.'):
                     else:
                         d['precision'] = -1
                     d['host'] = bmark[:bmark.index('.ca') + 3]
-                    task = task.replace("ConvLarge", "cnn_256x256")
-                    task = task.replace("ConvMed", "cnn_96x96")
-                    task = task.replace("ConvSmall", "cnn_32x32")
+                    task = task.replace("ConvLarge", "cnn_max_pooling_256x256")
+                    task = task.replace("ConvMed", "cnn_max_pooling_96x96")
+                    task = task.replace("ConvSmall", "cnn_max_pooling_32x32")
                     d['problem'] = task
                     d['speed'] = float(t)
                     results.append(d)
