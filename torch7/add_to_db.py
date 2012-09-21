@@ -32,7 +32,7 @@ def main():
             if '=' in line:
                 key = line[:line.index('=')]
                 val = line[line.index('=') + 1:]
-                if key in ('host', 'device', 'OMP_NUM_THREADS'):
+                if key in ('host', 'device', 'OMP_NUM_THREADS', 'LUA_NOTE'):
                     template[key] = val.strip()
                 elif key in ('OpenMP') :
                     template[key] = bool(int(val))
