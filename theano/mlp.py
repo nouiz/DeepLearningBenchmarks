@@ -161,7 +161,7 @@ def online_mlp_784_1000_1000_1000_10():
         pass
 
 
-def bench_logreg():
+def bench_logreg(variant=True):
     name = "mlp_784_10"
     v = shared(zeros(outputs, inputs), name='v')
     c = shared(zeros(outputs), name='c')
@@ -194,6 +194,8 @@ def bench_logreg():
                      name=name)
 #    theano.printing.debugprint(train, print_type=True)
     GlobalBenchReporter.eval_model(train, name)
+    if not variant:
+        return
 
     # Version with no inputs
     snsi.set_value(GlobalBenchReporter.batch_size)
@@ -211,7 +213,7 @@ def bench_logreg():
     GlobalBenchReporter.bypass_eval_model(train2, name, init_to_zero=ssi)
 
 
-def bench_mlp_500():
+def bench_mlp_500(variant=True):
     name = "mlp_784_500_10"
     HUs = 500
     w = shared(rand(HUs, inputs) * numpy.sqrt(6 / (inputs + HUs)), name='w')
@@ -242,7 +244,8 @@ def bench_mlp_500():
                               c: c - lr * gc},
                      name=name)
     GlobalBenchReporter.eval_model(train, name)
-
+    if not variant:
+        return
 
     # Version with no inputs
     snsi.set_value(GlobalBenchReporter.batch_size)
@@ -262,7 +265,7 @@ def bench_mlp_500():
     GlobalBenchReporter.bypass_eval_model(train2, name, init_to_zero=ssi)
 
 
-def bench_deep1000():
+def bench_deep1000(variant=True):
     name = "mlp_784_1000_1000_1000_10"
     w0 = shared(rand(inputs, 1000) * numpy.sqrt(6 / (inputs + 1000)), name='w0')
     b0 = shared(zeros(1000), name='b0')
@@ -299,6 +302,8 @@ def bench_deep1000():
                               for p, gp in zip(params, gparams)],
                      name=name)
     GlobalBenchReporter.eval_model(train, name)
+    if not variant:
+        return
 
     # Version with no inputs
     h0 = tanh(dot(ssx_, w0) + b0)
@@ -323,6 +328,9 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("--batch", default=60, type="int",
                       help="the batch size to use")
+    parser.add_option("--novariant", default=True,
+                      action="store_false", dest="variant",
+                      help="Do we run the variant variant?")
     (options, args) = parser.parse_args()
 
     GlobalBenchReporter.__init__(n_examples, batch_size=options.batch,
@@ -330,7 +338,7 @@ if __name__ == '__main__':
     #online_mlp_784_10()
     #online_mlp_784_500_10()
     #online_mlp_784_1000_1000_1000_10()
-    bench_logreg()
-    bench_mlp_500()
-    bench_deep1000()
+    bench_logreg(options.variant)
+    bench_mlp_500(options.variant)
+    bench_deep1000(options.variant)
     #GlobalBenchReporter.report_speed_info()

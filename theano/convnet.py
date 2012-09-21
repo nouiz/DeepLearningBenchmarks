@@ -51,7 +51,7 @@ ssx = data_x[ssi:ssi + snsi]
 ssy = data_y[ssi:ssi + snsi]
 
 
-def bench_ConvSmall(batchsize):
+def bench_ConvSmall(batchsize, variant=True):
     name = "ConvSmall"
     # Image shape 32x32
     GlobalBenchReporter.batch_size = batchsize
@@ -87,6 +87,8 @@ def bench_ConvSmall(batchsize):
                      name=name)
 
     GlobalBenchReporter.eval_model(train, name)
+    if not variant:
+        return
 
     # Versions with no inputs
     snsi.set_value(GlobalBenchReporter.batch_size)
@@ -111,7 +113,7 @@ def bench_ConvSmall(batchsize):
 
     GlobalBenchReporter.bypass_eval_model(train2, name, init_to_zero=ssi)
 
-def bench_ConvMed(batchsize):
+def bench_ConvMed(batchsize, variant=True):
     name = "ConvMed"
     # Image shape 96x96
     GlobalBenchReporter.batch_size = batchsize
@@ -145,6 +147,8 @@ def bench_ConvMed(batchsize):
                      updates=[(p, p - lr * gp) for p, gp in zip(params, gparams)],
                      name=name)
     GlobalBenchReporter.eval_model(train, name)
+    if not variant:
+        return
 
     # Versions with no inputs
     snsi.set_value(GlobalBenchReporter.batch_size)
@@ -168,7 +172,7 @@ def bench_ConvMed(batchsize):
     GlobalBenchReporter.bypass_eval_model(train2, name, init_to_zero=ssi)
 
 
-def bench_ConvLarge(batchsize):
+def bench_ConvLarge(batchsize, variant=True):
     name = "ConvLarge"
     # Image shape 256x256
     GlobalBenchReporter.batch_size = batchsize
@@ -202,6 +206,8 @@ def bench_ConvLarge(batchsize):
                      updates=[(p, p - lr * gp) for p, gp in zip(params, gparams)],
                      name=name)
     GlobalBenchReporter.eval_model(train, name)
+    if not variant:
+        return
 
     # Versions with no inputs
     snsi.set_value(GlobalBenchReporter.batch_size)
@@ -231,11 +237,13 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("--batch", default=60, type="int",
                       help="the batch size to use")
+    parser.add_option("--novariant", default=True,
+                      action="store_false", dest="variant",
+                      help="Do we run the variant variant?")
     (options, args) = parser.parse_args()
-
     GlobalBenchReporter.__init__(n_examples, options.batch,
                                  algo=Algorithms.CONVNET)
-    bench_ConvSmall(options.batch)
-    bench_ConvMed(options.batch)
-    bench_ConvLarge(options.batch)
+    bench_ConvSmall(options.batch, options.variant)
+    bench_ConvMed(options.batch, options.variant)
+    bench_ConvLarge(options.batch, options.variant)
     #GlobalBenchReporter.report_speed_info()
