@@ -14,6 +14,7 @@ cmd:option('-nexmlp', 60000, '# of examples for the MLPs')
 cmd:option('-nexcnn', 6000, '# of examples for the CNNs')
 cmd:option('-hardtanh', false, 'use hardtanh instead of tanh')
 cmd:option('-convfast', false, 'use "fast" convolution code instead of standard')
+cmd:option('-subsamp', false, 'use SubSampling instead of MaxPooling')
 cmd:option('-openmp', false, 'use openmp *package*')
 cmd:option('-double', false, 'use doubles instead of floats')
 cmd:option('-cuda', false, 'use CUDA instead of floats')
@@ -271,7 +272,14 @@ if not params.nomlp then
 end
 
 if not params.nocnn then
-
+   local pool = "max_pooling"
+   function pool_fct(a, b, c, d, e)
+      return nn.SpatialMaxPooling(b, c, d, e)
+   end
+   if params.subsamp then
+      pool = "sub_sampling"
+      pool_fct = nn.SpatialSubSampling
+   end
    function createcnndataset(nex,w,h)
       local dataset = {}
       local data = torch.randn(nex, 1, w, h)
@@ -309,11 +317,11 @@ if not params.nocnn then
       local mlp = nn.Sequential();                 -- make a multi-layer perceptron
       mlp:add(nn.SpatialConvolution(1, 6, 5, 5)) -- output 28x28
       mlp:add(nn.Tanh())
-      mlp:add(nn.SpatialMaxPooling(2, 2, 2, 2)) --output 14x14
+      mlp:add(pool_fct(6, 2, 2, 2, 2)) --output 14x14
       mlp:add(nn.Tanh())
       mlp:add(nn.SpatialConvolution(6, 16, 5, 5)) -- output 10x10
       mlp:add(nn.Tanh())
-      mlp:add(nn.SpatialMaxPooling(2, 2, 2, 2)) -- output 5x5
+      mlp:add(pool_fct(16, 2, 2, 2, 2)) -- output 5x5
       mlp:add(nn.Tanh())
       mlp:add(nn.Reshape(16*5*5))
       mlp:add(nn.Linear(16*5*5, 120))
@@ -347,9 +355,10 @@ if not params.nocnn then
       trainer.maxIteration = params.iter
       local t = torch.Timer()
       trainer:train(dataset)
-      printlog(string.format("cnn_32x32\t%.2f", params.iter*params.nexcnn/t:time().real))
+      printlog(string.format("cnn_%s_32x32\t%.2f", pool,
+                             params.iter*params.nexcnn/t:time().real))
    end
-   
+
    if true then --LeNet5-like 96x96
       collectgarbage()
       local dataset = createcnndataset(params.nexcnn, 96, 96)
@@ -357,11 +366,15 @@ if not params.nocnn then
       local mlp = nn.Sequential();                 -- make a multi-layer perceptron
       mlp:add(nn.SpatialConvolution(1, 6, 7, 7)) -- output 90x90
       mlp:add(nn.Tanh())
-      mlp:add(nn.SpatialMaxPooling(3, 3, 3, 3)) --output 30x30
+      if params.subsamp then
+         mlp:add(nn.SpatialSubSampling(6, 3, 3, 3, 3)) --output 30x30
+      else
+         mlp:add(nn.SpatialMaxPooling(3, 3, 3, 3)) --output 30x30
+      end
       mlp:add(nn.Tanh())
       mlp:add(nn.SpatialConvolution(6, 16, 7, 7)) -- output 24x24
       mlp:add(nn.Tanh())
-      mlp:add(nn.SpatialMaxPooling(3, 3, 3, 3)) -- output 8x8
+      mlp:add(pool_fct(16, 3, 3, 3, 3)) -- output 8x8
       mlp:add(nn.Tanh())
       mlp:add(nn.Reshape(16*8*8))
       mlp:add(nn.Linear(16*8*8, 120))
@@ -395,7 +408,8 @@ if not params.nocnn then
       trainer.maxIteration = params.iter
       local t = torch.Timer()
       trainer:train(dataset)
-      printlog(string.format("cnn_96x96\t%.2f", params.iter*params.nexcnn/t:time().real))
+      printlog(string.format("cnn_%s_96x96\t%.2f", pool,
+                             params.iter*params.nexcnn/t:time().real))
    end
 
    if true then --LeNet5-like 256x256
@@ -405,11 +419,11 @@ if not params.nocnn then
       local mlp = nn.Sequential();                 -- make a multi-layer perceptron
       mlp:add(nn.SpatialConvolution(1, 6, 7, 7)) -- output 250x250
       mlp:add(nn.Tanh())
-      mlp:add(nn.SpatialMaxPooling(5, 5, 5, 5)) --output 50x50
+      mlp:add(pool_fct(6, 5, 5, 5, 5)) --output 50x50
       mlp:add(nn.Tanh())
       mlp:add(nn.SpatialConvolution(6, 16, 7, 7)) -- output 44x44
       mlp:add(nn.Tanh())
-      mlp:add(nn.SpatialMaxPooling(4, 4, 4, 4)) -- output 11x11
+      mlp:add(pool_fct(16, 4, 4, 4, 4)) -- output 11x11
       mlp:add(nn.Tanh())
       mlp:add(nn.Reshape(16*11*11))
       mlp:add(nn.Linear(16*11*11, 120))
@@ -443,6 +457,7 @@ if not params.nocnn then
       trainer.maxIteration = params.iter
       local t = torch.Timer()
       trainer:train(dataset)
-      printlog(string.format("cnn_256x256\t%.2f", params.iter*params.nexcnn/t:time().real))
+      printlog(string.format("cnn_%s_256x256\t%.2f", pool,
+                             params.iter*params.nexcnn/t:time().real))
    end
 end
