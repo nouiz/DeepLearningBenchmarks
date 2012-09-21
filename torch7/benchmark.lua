@@ -96,7 +96,7 @@ if not params.nocont then
     mat2 = torch.randn(size, size)
     res = torch.randn(size, size)
 
---cuda don't support res:mm, torch.mm or torch.addmm
+--cuda don't support res:mm or torch.mm
     if not params.cuda then
       tmp = torch.randn(size, size)
       local t = torch.Timer()
@@ -106,11 +106,7 @@ if not params.nocont then
       printlog(string.format("control_mm_%d\t%.2f", size, t:time().real))
       local t = torch.Timer()
       for i=1,10 do
-        tmp:mm(mat1, mat2)
-	tmp = tmp * 0.8
-        res = res * 0.4
-        res = res + tmp
-
+        res = tmp:mm(mat1, mat2) * 0.8 + res * 0.4
       end
       printlog(string.format("control_mm_gemm_%d\t%.2f", size, t:time().real))
     end
