@@ -55,20 +55,23 @@ if __name__ == '__main__':
                     "_trust_input",
                     "_bypass_inputs_parsing",
                     "_bypass_c_loop",]
-    variants = [('cvm_nogc', ''),
+    variants = [('cvm', ''),
+                ('cvm_nogc', ''),
                 ('cvm_nogc', "_trust_input"),
                 ('cvm_nogc', "_bypass_c_loop")]
+    luas = ['lua', 'luajit']
     for problem in problems:
+        if any(problem.endswith(suf) for suf in all_suffixes):
+            continue
+
         if problem.startswith("control"):
             suffixes = []
             plot_gpu = False
         else:
-            suffixes = all_suffixes
+            suffixes = all_suffixes[:]
             plot_gpu = True
-        if any(problem.endswith(suf) for suf in all_suffixes):
-            continue
-            
-        for suf in suffixes[:]:            
+
+        for suf in suffixes[:]:
             ent = [entry for entry in theano_db
                    if entry['problem'] == problem + suf and
                    entry['precision'] == 32]
@@ -83,53 +86,50 @@ if __name__ == '__main__':
             plot_res = []
             for batch in batch_sizes:
                 for device, openmp in [('CPU', 1),
-                                       ('CPU', "unset"),
+                                       ('CPU', "4"),
                                        ('GPU', 1)]:
                     if device == 'GPU' and not plot_gpu:
                         continue
-                    for linker in ['cvm', 'cvm_nogc']:
-                        res = []
-                        for db in [torch7_db, theano_db]:
-                            ent = [entry['speed'] for entry in db
-                                   if entry['problem'] == problem and
-                                   entry['precision'] == 32 and
-                                   str(entry['OMP_NUM_THREADS']) == str(openmp) and
-                                   entry.get('batch', 1) == batch and
-                                   entry['device'] == device and
-                                   entry['host'] == host and
-                                   entry.get('linker', linker) == linker]
-                            ent = list(set(ent))
-                            ent.sort()
-                            res.append(ent)
-                        for suffix in suffixes:
-                            ent = [entry['speed'] for entry in theano_db
-                                   if entry['problem'] == problem + suffix and
-                                   entry['precision'] == 32 and
-                                   str(entry['OMP_NUM_THREADS']) == str(openmp) and
-                                   entry.get('batch', 1) == batch and
-                                   entry['device'] == device and
-                                   entry['host'] == host and
-                                   entry.get('linker', linker) == linker]
-                            res.append(ent)
+                    res = []
+                    for note in luas:
+                        ent = [entry['speed'] for entry in torch7_db
+                               if entry['problem'] == problem and
+                               entry['precision'] == 32 and
+                               str(entry['OMP_NUM_THREADS']) == str(openmp) and
+                               entry.get('batch', 1) == batch and
+                               entry['device'] == device and
+                               entry['host'] == host and
+                               entry.get('LUA_NOTE', 'lua') == note]
+#                        import pdb;pdb.set_trace()
+                        ent = list(set(ent))
+                        ent.sort()
+                        res.append(ent)
+                    for linker, suffix in variants:
+                        ent = [entry['speed'] for entry in theano_db
+                               if entry['problem'] == problem + suffix and
+                               entry['precision'] == 32 and
+                               str(entry['OMP_NUM_THREADS']) == str(openmp) and
+                               entry.get('batch', 1) == batch and
+                               entry['device'] == device and
+                               entry['host'] == host and
+                               entry.get('linker', linker) == linker]
+                        res.append(ent)
 
-                        if res[0] and res[1]:
-                            print "%8s batch %s %s omp=%.5s" % (
-                                linker, batch, device, openmp),
-                            print  res, res[0][0] / res[1][0]
-                        elif res[0] or res[1]:
-                            print "%8s batch %s %s omp=%.5s" % (
-                                linker, batch, device, openmp),
-                            print res
+                    if len(res) > len(luas) and res[0] and res[len(luas)]:
+                        print "%8s batch %s %s omp=%.5s" % (
+                            linker, batch, device, openmp),
+                        print  res, res[0][0] / res[len(luas)][0]
+                    elif res[0] or res[len(luas)]:
+                        print "%8s batch %s %s omp=%.5s" % (
+                            linker, batch, device, openmp),
+                        print res
 
-                        if linker != "cvm":
-                            plot_res.extend(res[1:])
-                        else:
-                            plot_res.extend(res)
+                    plot_res.extend(res)
 
             if (len(reduce(list.__add__, plot_res)) > 2 and
                     (problem.startswith('mlp')
                      or problem.startswith('control_addmm_2000')
-                     or problem.startswith('cnn')
+#                     or problem.startswith('cnn')
                  )):
                 fig = plt.figure()
                 plot_res_batches = plot_res
@@ -148,19 +148,19 @@ if __name__ == '__main__':
                     rec = []
                     legends = ['Torch7',
                                'Theano']
-
-                    for suf in suffixes:
+                    for linker, suf in variants:
+                        s = "Theano " + linker
                         if suf == "_bypass_noinputs":
-                            legends.append("Theano no input")
+                            s +=  "no input"
                         elif suf == "_trust_input":
-                            legends.append("Theano trust inputs")
+                            s += "trust inputs"
                         elif suf == "_bypass_inputs_parsing":
-                            legends.append("Theano f.fn()")
+                            s += "f.fn()"
                         elif suf == "_bypass_c_loop":
-                            legends.append("Theano f.fn(n_calls=N)")
-                    for l in legends[1:]:
-                        legends.append(l + " nogc")
+                            s += "f.fn(n_calls=N)"
+                        legends.append(s)
                     tmp = legends[:]
+                    tests_per_categ = len(legends)
                     for l in tmp:
                         legends.append(l + " OpemMP")
                     if plot_gpu:
@@ -172,23 +172,35 @@ if __name__ == '__main__':
                     skipped = 0
                     for i in ind:
                         if len(plot_res[i]) == 0:
-                            #skipped += 1
+                            skipped += 1
                             continue
                         leg.append(legends[i])
-                        if i in [0, len(tmp), 2 * len(tmp)]:
-                            c = "r"
-                        elif 'nogc' in leg[-1]:
-                            c = "g"
+                        ii = i % len(tmp)
+                        if ii < len(luas):
+                            if ii == 0:
+                                c = "#FFAAAA"
+                            else:
+                                c = "#FF0000"
                         else:
-                            c = 'b'
-                        tests_per_categ = 1 + 2 * (len(suffixes) + 1)
-                        if problem.startswith("control"):
-                            sep = 0
-                        else:
-                            sep = i // tests_per_categ
+                            ii -= len(luas)
+                            if ii % len(tmp) == 3:
+                                c = '#0000FF'
+                            elif ii % len(tmp) == 2:
+                                c = '#4444FF'
+                            elif ii % len(tmp) == 1:
+                                c = '#8888FF'
+                            else:
+                                c = '#AAAAFF'
+#                        if problem.startswith("control"):
+#                            sep = 0
+#                        else:
+                        sep = i // tests_per_categ
 #                        print i, len(suffixes), sep
 #                        import pdb;pdb.set_trace()
-                        rec.append(ax.bar(i * width + sep,
+                        pos = i * width + sep
+                        if problem.startswith("control"):
+                            pos = (i - skipped) * width + sep
+                        rec.append(ax.bar(pos,
                                           plot_res[i][0],
                                           width, color=c))
                     host_data = host
@@ -207,18 +219,20 @@ if __name__ == '__main__':
 
                     if problem.startswith("control"):
                         ax.set_ylabel('time for 10 calls(s)')
-                        ax.set_xticks(ind[:2] * 2 * width + 2 * width / 2)
+                        ax.set_xticks(ind[:2] * 2 * width + width + ind[:2])
                         ax.set_xticklabels(('CPU', 'OpenMP'))#', 'GPU'))
                         #ax.legend(rec[:2], leg[:2], loc=1)
                     else:
-                        ax.set_ylabel('examples/second')
-                        ax.set_xticks(ind[:3] * (tests_per_categ + 4) * width +
-                                      (tests_per_categ + 1) * width / 2)
+                        if idx == 1 or len(batch_sizes) == 1:
+                            ax.set_ylabel('examples/second')
+                        ax.set_xticks(ind[:3] * tests_per_categ * width +
+                                      ind[:3] +
+                                      tests_per_categ * width / 2)
                         if idx == n_plot - 1:
                             ax.set_xticklabels(('CPU', 'OpenMP', 'GPU'))
                         else:
                             ax.set_xticklabels(('', '', ''))
-                        size = tests_per_categ - len(suffixes) - 1 - skipped
+                        size = tests_per_categ - len(suffixes) - 1
                         #ax.legend(rec[:size], leg[:size], loc=2)
                         ax.set_title("batch " + str(batch))
                 plt.savefig(problem + ".pdf")
