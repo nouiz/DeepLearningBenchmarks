@@ -5,7 +5,7 @@ import numpy
 from numpy import asarray, random
 
 import theano
-from theano.tensor import lscalar, tanh, dot, grad, log, arange
+from theano.tensor import lscalar, tanh, dot, grad, log, arange, specify_shape
 from theano.tensor.nnet import softmax
 from theano.tensor.nnet import crossentropy_softmax_argmax_1hot_with_bias
 from theano import shared, function, config
@@ -170,6 +170,8 @@ def bench_logreg(variant=True):
         sy_ = sy.flatten()
         ssx_ = ssx.flatten()
         ssy_ = ssy.flatten()
+        sy_ = specify_shape(sy, [1])
+        ssy_ = ssy
     else:
         sx_ = sx
         sy_ = sy
