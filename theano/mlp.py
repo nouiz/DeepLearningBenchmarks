@@ -167,11 +167,9 @@ def bench_logreg(variant=True):
     c = shared(zeros(outputs), name='c')
     if GlobalBenchReporter.batch_size == 1:
         sx_ = sx.flatten()
-        sy_ = sy.flatten()
-        ssx_ = ssx.flatten()
-        ssy_ = ssy.flatten()
         sy_ = specify_shape(sy, [1])
-        ssy_ = ssy
+        ssx_ = ssx.flatten()
+        ssy_ = specify_shape(ssy, [1])
     else:
         sx_ = sx
         sy_ = sy
@@ -224,9 +222,9 @@ def bench_mlp_500(variant=True):
     c = shared(zeros(outputs), name='c')
     if GlobalBenchReporter.batch_size == 1:
         sx_ = sx.flatten()
-        sy_ = sy.flatten()
+        sy_ = specify_shape(sy, [1])
         ssx_ = ssx.flatten()
-        ssy_ = ssy.flatten()
+        ssy_ = specify_shape(ssy, [1])
     else:
         sx_ = sx
         sy_ = sy
@@ -279,9 +277,9 @@ def bench_deep1000(variant=True):
     c = shared(zeros(outputs), name='c')
     if GlobalBenchReporter.batch_size == 1:
         sx_ = sx.flatten()
-        sy_ = sy.flatten()
+        sy_ = specify_shape(sy, [1])
         ssx_ = ssx.flatten()
-        ssy_ = ssy.flatten()
+        ssy_ = specify_shape(ssy, [1])
     else:
         sx_ = sx
         sy_ = sy
