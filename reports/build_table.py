@@ -9,7 +9,47 @@ import matplotlib.pyplot as plt
 from build_csv import build_db
 
 
+def plot_legend():
+    #### Legend plot
+    # List of (color, description string) pairs
+    t7_color_descr = [
+            ("#FFAAAA", "With Lua"),
+            ("#FF0000", "With LuaJIT"),
+            ]
+    th_color_descr = [
+            ('#AAAAFF', "Default configuration"),
+            ('#8888FF', "No garbage collection (no GC)"),
+            ('#4444FF', "No conversion of function input data, no GC"),
+            ('#0000FF', "Function without inputs, C outer loop, no GC")
+            ]
+
+    t7_spec = ('Torch7', 'upper center', t7_color_descr, (0, 0, 1, 0.9))
+    th_spec = ('Theano', 'lower center', th_color_descr, (0, 0.1, 1, 1))
+
+    plt.figure()
+    a = plt.gca()
+    plt.rcParams['font.size'] = 24
+
+    for title, loc, color_descr, bbox in (t7_spec, th_spec):
+        color, descr = zip(*color_descr)
+        phantom_bars = [plt.Rectangle((0, 0), 1, 1, fc=c)
+                            for c in color]
+        leg = plt.legend(phantom_bars, descr, loc=loc, title=title,
+                mode="expand", prop={'size': 'small'},
+                borderaxespad=0.5,
+                bbox_to_anchor=bbox, bbox_transform=plt.gcf().transFigure)
+        a.add_artist(leg)
+
+    plt.axis('off')
+    plt.savefig("legend.pdf")
+    plt.show()
+
+
 if __name__ == '__main__':
+    if sys.argv[1] == '--legend':
+        plot_legend()
+        sys.exit()
+
     assert sys.argv[1] == '--db'
     db = cPickle.load(open(sys.argv[2]))
 
