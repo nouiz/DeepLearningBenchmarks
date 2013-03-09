@@ -27,6 +27,8 @@ THEANO_FLAGS="$BLAS32" python -c "import theano; print 'blas',theano.config.blas
 NOMLP=0
 NOCNN=0
 NOCONT=0
+SUB_PARAM=""
+
 for i in $@; do
     if [ "$i" == "-nomlp" ]; then
 	NOMLP=1
@@ -37,6 +39,8 @@ for i in $@; do
     elif [ "$i" == "-nocont" ]; then
 	NOCONT=1
 	echo "SKIP CONT"
+    elif [ "$i" == "--novariant" ]; then
+	SUB_PARAM="--novariant"
     else
 	echo "UNKNOW PARAM: $i"
     fi
@@ -61,22 +65,22 @@ do
     if [ "$NOMLP" == "0" ]; then
         echo "batch $batch MLP"
         export OMP_NUM_THREADS=1
-        (THEANO_FLAGS="$BLAS32",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_cpu32.err >> outs/${HOSTNAME}_mlp_cpu32.out) &&
-#        (THEANO_FLAGS="$BLAS64",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_cpu64.err >> outs/${HOSTNAME}_mlp_cpu64.out) &&
-        (THEANO_FLAGS="$GPU32",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_gpu32.err >> outs/${HOSTNAME}_mlp_gpu32.out) ;
+        (THEANO_FLAGS="$BLAS32",linker=$linker python mlp.py --batch $batch $SUB_PARAM 2>> outs/${HOSTNAME}_mlp_cpu32.err >> outs/${HOSTNAME}_mlp_cpu32.out) &&
+#        (THEANO_FLAGS="$BLAS64",linker=$linker python mlp.py --batch $batch $SUB_PARAM 2>> outs/${HOSTNAME}_mlp_cpu64.err >> outs/${HOSTNAME}_mlp_cpu64.out) &&
+        (THEANO_FLAGS="$GPU32",linker=$linker python mlp.py --batch $batch $SUB_PARAM 2>> outs/${HOSTNAME}_mlp_gpu32.err >> outs/${HOSTNAME}_mlp_gpu32.out) ;
 	export OMP_NUM_THREADS=4
-        (THEANO_FLAGS="$BLAS32",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_cpu32_openmp.err >> outs/${HOSTNAME}_mlp_cpu32_openmp.out)
-#        (THEANO_FLAGS="$BLAS64",linker=$linker python mlp.py --batch $batch 2>> outs/${HOSTNAME}_mlp_cpu64_openmp.err >> outs/${HOSTNAME}_mlp_cpu64_openmp.out)
+        (THEANO_FLAGS="$BLAS32",linker=$linker python mlp.py --batch $batch $SUB_PARAM 2>> outs/${HOSTNAME}_mlp_cpu32_openmp.err >> outs/${HOSTNAME}_mlp_cpu32_openmp.out)
+#        (THEANO_FLAGS="$BLAS64",linker=$linker python mlp.py --batch $batch $SUB_PARAM 2>> outs/${HOSTNAME}_mlp_cpu64_openmp.err >> outs/${HOSTNAME}_mlp_cpu64_openmp.out)
     fi
     if [ "$NOCNN" == "0" ]; then
         echo "batch $batch CONV"
         export OMP_NUM_THREADS=1
-        (THEANO_FLAGS="$BLAS32",linker=$linker python convnet.py --batch $batch 2>> outs/${HOSTNAME}_convnet_cpu32.err >> outs/${HOSTNAME}_convnet_cpu32.out) &&
-#        (THEANO_FLAGS="$BLAS64",linker=$linker python convnet.py --batch $batch 2>> outs/${HOSTNAME}_convnet_cpu64.err >> outs/${HOSTNAME}_convnet_cpu64.out) &&
-        (THEANO_FLAGS="$GPU32",linker=$linker python convnet.py --batch $batch 2>> outs/${HOSTNAME}_convnet_gpu32.err >> outs/${HOSTNAME}_convnet_gpu32.out) ;
+        (THEANO_FLAGS="$BLAS32",linker=$linker python convnet.py --batch $batch $SUB_PARAM 2>> outs/${HOSTNAME}_convnet_cpu32.err >> outs/${HOSTNAME}_convnet_cpu32.out) &&
+#        (THEANO_FLAGS="$BLAS64",linker=$linker python convnet.py --batch $batch $SUB_PARAM 2>> outs/${HOSTNAME}_convnet_cpu64.err >> outs/${HOSTNAME}_convnet_cpu64.out) &&
+        (THEANO_FLAGS="$GPU32",linker=$linker python convnet.py --batch $batch $SUB_PARAM 2>> outs/${HOSTNAME}_convnet_gpu32.err >> outs/${HOSTNAME}_convnet_gpu32.out) ;
 	export OMP_NUM_THREADS=4
-        (THEANO_FLAGS="$BLAS32",linker=$linker python convnet.py --batch $batch 2>> outs/${HOSTNAME}_convnet_cpu32_openmp.err >> outs/${HOSTNAME}_convnet_cpu32_openmp.out)
-#        (THEANO_FLAGS="$BLAS64",linker=$linker python convnet.py --batch $batch 2>> outs/${HOSTNAME}_convnet_cpu64_openmp.err >> outs/${HOSTNAME}_convnet_cpu64_openmp.out) &&
+        (THEANO_FLAGS="$BLAS32",linker=$linker python convnet.py --batch $batch $SUB_PARAM 2>> outs/${HOSTNAME}_convnet_cpu32_openmp.err >> outs/${HOSTNAME}_convnet_cpu32_openmp.out)
+#        (THEANO_FLAGS="$BLAS64",linker=$linker python convnet.py --batch $batch $SUB_PARAM 2>> outs/${HOSTNAME}_convnet_cpu64_openmp.err >> outs/${HOSTNAME}_convnet_cpu64_openmp.out) &&
     fi
   done
 done
