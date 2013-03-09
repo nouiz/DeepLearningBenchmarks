@@ -162,7 +162,8 @@ def online_mlp_784_1000_1000_1000_10():
 
 
 def bench_logreg(variant=True):
-    name = "mlp_784_10"
+    name = "mlp_784_10_b" + str(GlobalBenchReporter.batch_size)
+    name +=  "_" + config.linker
     v = shared(zeros(outputs, inputs), name='v')
     c = shared(zeros(outputs), name='c')
     if GlobalBenchReporter.batch_size == 1:
@@ -214,7 +215,8 @@ def bench_logreg(variant=True):
 
 
 def bench_mlp_500(variant=True):
-    name = "mlp_784_500_10"
+    name = "mlp_784_500_10_b" + str(GlobalBenchReporter.batch_size)
+    name +=  "_" + config.linker
     HUs = 500
     w = shared(rand(HUs, inputs) * numpy.sqrt(6 / (inputs + HUs)), name='w')
     b = shared(zeros(HUs), name='b')
@@ -266,7 +268,8 @@ def bench_mlp_500(variant=True):
 
 
 def bench_deep1000(variant=True):
-    name = "mlp_784_1000_1000_1000_10"
+    name = "mlp_784_1000_1000_1000_10_b" + str(GlobalBenchReporter.batch_size)
+    name +=  "_" + config.linker
     w0 = shared(rand(inputs, 1000) * numpy.sqrt(6 / (inputs + 1000)), name='w0')
     b0 = shared(zeros(1000), name='b0')
     w1 = shared(rand(1000, 1000) * numpy.sqrt(6 / (1000 + 1000)), name='w1')
