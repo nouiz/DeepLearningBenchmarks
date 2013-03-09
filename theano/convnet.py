@@ -52,7 +52,9 @@ ssy = data_y[ssi:ssi + snsi]
 
 
 def bench_ConvSmall(batchsize, variant=True):
-    name = "ConvSmall"
+    name = "ConvSmall_b" + str(GlobalBenchReporter.batch_size)
+    name += "_" + config.linker
+
     # Image shape 32x32
     GlobalBenchReporter.batch_size = batchsize
     data_x.set_value(randn(n_examples, 1, 32, 32))
@@ -114,7 +116,9 @@ def bench_ConvSmall(batchsize, variant=True):
     GlobalBenchReporter.bypass_eval_model(train2, name, init_to_zero=ssi)
 
 def bench_ConvMed(batchsize, variant=True):
-    name = "ConvMed"
+    name = "ConvMed_b" + str(GlobalBenchReporter.batch_size)
+    name += "_" + config.linker
+
     # Image shape 96x96
     GlobalBenchReporter.batch_size = batchsize
     data_x.set_value(randn(n_examples, 1, 96, 96))
@@ -173,7 +177,9 @@ def bench_ConvMed(batchsize, variant=True):
 
 
 def bench_ConvLarge(batchsize, variant=True):
-    name = "ConvLarge"
+    name = "ConvLarge_b" + str(GlobalBenchReporter.batch_size)
+    name += "_" + config.linker
+
     # Image shape 256x256
     GlobalBenchReporter.batch_size = batchsize
     data_x.set_value(randn(n_examples, 1, 256, 256))
