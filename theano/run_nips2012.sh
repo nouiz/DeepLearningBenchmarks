@@ -28,6 +28,8 @@ NOMLP=0
 NOCNN=0
 NOCONT=0
 SUB_PARAM=""
+LINKER="cvm cvm_nogc"
+BATCH="1 10 60"
 
 for i in $@; do
     if [ "$i" == "-nomlp" ]; then
@@ -57,10 +59,10 @@ if [ "$NOCONT" == "0" ]; then
     #(THEANO_FLAGS="$BLAS64" python control.py 2>> outs/${HOSTNAME}_control_cpu64_openmp.err >> outs/${HOSTNAME}_control_cpu64_openmp.out);
 fi
 
-for linker in cvm cvm_nogc;
+for linker in $LINKER;
 do
   echo "Run $linker"
-  for batch in 1 10 60;
+  for batch in $BATCH;
   do
     if [ "$NOMLP" == "0" ]; then
         echo "batch $batch MLP"
